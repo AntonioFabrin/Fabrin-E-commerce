@@ -6,7 +6,7 @@ O Fabrin E-commerce é uma aplicação completa de comércio eletrônico. Este p
 ## 🚀 Tecnologias Utilizadas
 O projeto está sendo desenvolvido com as seguintes tecnologias:
 
-* **Frontend/Mobile:** React Native
+* **Frontend/Mobile:** Next
 * **Linguagem:** TypeScript
 * **Requisições HTTP:** Axios
 * **Banco de Dados:** MySQL 
@@ -32,7 +32,7 @@ Antes de começar, você vai precisar ter instalado em sua máquina as seguintes
 $ git clone [https://github.com/AntonioFabrin/Fabrin-E-Commerce.git](https://github.com/AntonioFabrin/Fabrin-E-Commerce.git)
 
 # Acesse a pasta do projeto no terminal/cmd
-$ cd nome-do-repositorio
+$ cd E-commerce Online
 
 # Instale as dependências
 $ npm install 
