@@ -10,6 +10,35 @@ const productService = {
     }
     const result = await productRepository.create(productData);
     return result;
+    },
+
+    getAllProducts: async () => {
+        try {
+            const products = await productRepository.findAll();
+            return products;
+        } catch (error) {
+            throw new Error("Erro ao carregar a vitrine de produtos")
+        }
+    },
+
+    getProductById: async (id:number) => {
+        const product = await productRepository.findById(id);
+        if(!product) {
+            throw new Error ("Produto não encontrado na nossa loja.");
+        } 
+        return product;
+    },
+
+    updateProduct: async (id:number,productData: any) => {
+        await productService.getProductById(id);
+        const result = await productRepository.update(id, productData);
+        return result; 
+    },
+
+    deleteProduct: async (id: number) =>{
+        await productService.getProductById(id);
+        const result = await productRepository.delete(id);
+        return result;
     }
 };
 

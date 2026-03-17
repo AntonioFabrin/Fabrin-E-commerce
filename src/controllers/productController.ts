@@ -22,7 +22,58 @@ const productController = {
         } catch (error: any) {
             return res.status(400).json({ erro: error.message });
     }
+},
+
+getAll: async (req:Request, res:Response) => {
+    try {
+        console.log("🏪 Carregando a vitrine de produtos...");
+        const products = await productService.getAllProducts() as any[];
+
+        return res.status(200).json({
+            total: products.length,
+            produtos: products
+        });
+    } catch (error:any) {
+        return res.status(400).json({ erro: error.message });
+        
+    }
+},
+
+getById: async (req:Request, res: Response) => {
+    try{
+        const id = parseInt(req.params.id as string);
+        console.log (`🔍 Buscando detalhes do produto ID: ${id}...`);
+        const product = await productService.getProductById(id);
+        return res.status(200).json(product);
+    } catch (error: any) {
+        return res.status(404).json ({erro: error.message});
+    }
+},
+
+update: async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string);
+        const productData = req.body;
+
+        console.log (`✏️ Atualizando produto ID: ${id}...`);
+        await productService.updateProduct(id,productData);
+        return res.status(200).json ({mensagem: "Produto atualizado com sucesso no Marketplace!"});
+    } catch (error: any) {
+        return res.status(400).json({erro:error.message});
+    }
+},
+
+delete: async (req:Request, res:Response) =>{
+    try{
+        const id = parseInt(req.params.id as string);
+        console.log(`🗑️ Deletando produto ID: ${id}...`);
+        await productService.deleteProduct(id);
+        return res.status(200).json({mensagem:"Produto removido da loja com sucesso!"});
+    } catch (error: any) {
+        return res.status(400).json({erro:error.message});
+    }
 }
+
 };
 
 export default productController;
