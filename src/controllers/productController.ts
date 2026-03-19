@@ -52,25 +52,46 @@ getById: async (req:Request, res: Response) => {
 
 update: async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id as string);
+        const id = parseInt(req.params.id as string); // 👈 Variável chama 'id'
+        const userData = (req as any).user;
         const productData = req.body;
 
-        console.log (`✏️ Atualizando produto ID: ${id}...`);
-        await productService.updateProduct(id,productData);
-        return res.status(200).json ({mensagem: "Produto atualizado com sucesso no Marketplace!"});
+        // Corrigido: Trocado vírgula por ponto e 'productId' por 'id'
+        const product = await productService.getProductById(id); 
+
+        if (product.seller_id !== userData.id && userData.role !== 'admin') {
+            return res.status(403).json({
+                erro: "Acesso negado! Você não pode editar um produto que não é seu"
+            });
+        }
+
+        console.log(`✏️ Atualizando produto ID: ${id}...`);
+        await productService.updateProduct(id, productData);
+        return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
     } catch (error: any) {
-        return res.status(400).json({erro:error.message});
+        return res.status(400).json({ erro: error.message });
     }
 },
 
-delete: async (req:Request, res:Response) =>{
-    try{
-        const id = parseInt(req.params.id as string);
+delete: async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id as string); // 👈 Variável chama 'id'
+        const userData = (req as any).user;
+
+        // Corrigido: Trocado 'productId' por 'id'
+        const product = await productService.getProductById(id);
+
+        if (product.seller_id !== userData.id && userData.role !== 'admin') {
+            return res.status(403).json({
+                erro: "Acesso negado! Você não pode deletar um produto de outro vendedor."
+            });
+        }
+
         console.log(`🗑️ Deletando produto ID: ${id}...`);
         await productService.deleteProduct(id);
-        return res.status(200).json({mensagem:"Produto removido da loja com sucesso!"});
+        return res.status(200).json({ mensagem: "Produto removido da loja com sucesso!" });
     } catch (error: any) {
-        return res.status(400).json({erro:error.message});
+        return res.status(400).json({ erro: error.message });
     }
 }
 

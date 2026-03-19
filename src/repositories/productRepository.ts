@@ -46,13 +46,15 @@ const productRepository = {
     update: async (id:number, productData: any) => {
         try {
             const {name, description, price, stock, image_url} = productData;
+            
             const query = `
-            UPDATE procuts
-            SET name = ?, description = ?, price = ?, stock = ? image_url = ?, 
-            WHERE id = ?
+                UPDATE products
+                SET name = ?, description = ?, price = ?, stock = ?, image_url = ? 
+                WHERE id = ?
             `;
+            
             const values = [name, description, price, stock, image_url, id];
-            const result = await db.execute(query, values);
+            const [result] = await db.execute(query, values)
             return result;
         } catch (error) {
             console.error("❌ Erro ao atualizar produto no banco:",error)
@@ -67,9 +69,9 @@ const productRepository = {
             return result;
         } catch (error) {
             console.error ("❌ Erro ao deletar produto no banco:", error);
+            throw error;
         }
     }
-
 };
 
 export default productRepository;
