@@ -8,13 +8,14 @@ export const authMiddleware = (req: Request, res: Response, next:NextFunction) =
     }
     const parts = authHeader.split(' ');
     const token = parts [1];
-    
+    console.log("🕵️ Token que chegou no middleware:", token);
     try{
-        const secret = process.env.JWT || 'XT_WS_%*924=23=lufa';
+        const secret = process.env.JWT_SECRET || 'XT_WS_%*924=23=lufa';
         const decoded: any = jwt.verify(token,secret);
         (req as any).user = decoded;
         return next();
     } catch (err) {
+        console.error("🚨 Motivo da recusa do Token:", err);
         return res.status(401).json ({erro: 'Token inválido ou expirado'});
     };
 }

@@ -22,7 +22,7 @@ const authController = {
             console.log("🕵️ Tentando logar com os dados:");
             const { email, password } = req.body;
             const user = await authService.login(email, password);
-            const secret = process.env.JWT || 'XT_WS_%*924=23=lufa';
+            const secret = process.env.JWT_SECRET || 'XT_WS_%*924=23=lufa';
             const token = jwt.sign (
             {id: user.id, email: user.email, role: user.role},
             secret,
