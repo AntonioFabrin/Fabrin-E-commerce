@@ -12,6 +12,10 @@ const orderService = {
             const product = await productRepository.findById(item.product_id);
             if (!product) {
                 throw new Error (`Produto ID ${item.product_id} não existe mais na loja`)
+                
+            }   
+            if (product.stock < item.quantity) {
+                throw new Error (`Estoque insuficiente para '${product.name}'. Disponível: ${product.stock}, Solicitado: ${item.quantity}`);
             }
             const itemPrice = parseFloat(product.price);
             total += itemPrice * item.quantity;

@@ -56,16 +56,23 @@ const authController = {
 
     delete: async (req: Request, res: Response) => {
         try {
-            const {id} = req.params;
-            
-            console.log(`Tentando deleter o usuário ID:${id}`);
-            await authService.deleteUser(Number(id));
+            const targetId = parseInt(req.params.id as string);
+            const userData = (req as any).user;
 
-            return res.json ({
-                mensagem: `Usuário ${id} deletado com sucesso!`
+            if (targetId !== userData.id && userData.role !== 'admin') {
+                return res.status(403).json({ 
+                    erro: "Acesso negado! Você só pode deletar a sua própria conta." 
+                });
+            }
+
+            console.log(`⚖️ Executando exclusão do usuário ID: ${targetId}...`);
+            await authService.deleteUser(targetId);
+
+            return res.status(200).json({
+                mensagem: `Usuário ${targetId} foi deletado com sucesso do sistema!`
             });
         } catch (error: any) {
-            return res.status(400).json({erro: error.message});
+            return res.status(400).json({ erro: error.message });
         }
     },
 

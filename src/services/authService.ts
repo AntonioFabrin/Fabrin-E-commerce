@@ -24,7 +24,7 @@ const authService = {
                 name: userData.name,
                 email: userData.email,
                 password: hashPassword,
-                role: userData.role || 'customer'
+                role: 'customer'
             });
 
             return novoUserId;
@@ -81,9 +81,32 @@ const authService = {
             const users = await userRepository.findAll();
             return users;
         } catch (error: any) { 
-            // AGORA SIM: Vamos printar o erro real do banco de dados no terminal!
             console.error("❌ ERRO REAL NO BANCO:", error.message);
             throw new Error(`Erro no banco de dados: ${error.message}`);
+        }
+    },
+
+    updateUserRole: async (id: number, newRole: string) => {
+        try {
+            const validRoles = ['customer', 'seller']; 
+            
+            if (!validRoles.includes(newRole)) {
+                throw new Error("Cargo inválido! Escolha entre: customer ou seller.");
+            }
+            
+            // 1. Buscamos o usuário no banco:
+            const user = await userRepository.findById(id);
+            
+            if (!user) {
+                throw new Error("Usuário não encontrado no sistema.");
+            }
+
+            // 3. Atualizamos a role dele no banco
+            await userRepository.update(id, { role: newRole });
+
+            return { mensagem: `Sucesso! A conta agora tem permissões de ${newRole.toUpperCase()}.` };
+        } catch (error) {
+            throw error;
         }
     },
 }
