@@ -2,42 +2,68 @@ import { Request, Response} from 'express';
 import productService from '../services/productService';
 
 const productController = {
-    create: async (req:Request, res:Response) => {
+    create: async (req: Request, res: Response) => {
         try {
             console.log("Recebendo dados para novo anúncio...");
-            const {seller_id, name, description, price, stock, image_url} = req.body;
+            
+            const { seller_id, name, description, price, stock, category_id } = req.body;
+            
+            let image_url = '';
+            if (req.file) {
+                image_url = `uploads/${req.file.filename}`;
+            } else {
+                return res.status(400).json({ erro: "A imagem do produto é obrigatória!" });
+            }
+
             const newProduct = {
-                seller_id,
+                seller_id: Number(seller_id),
                 name,
                 description,
-                price,
-                stock,
+                price: Number(price),      
+                stock: Number(stock),      
+                category_id: Number(category_id),
                 image_url
             };
+
             const result = await productService.createProduct(newProduct);
-            return res.status(201).json ({
+            
+            return res.status(201).json({
                 mensagem: "Produto anunciado com sucesso!",
                 produtoId: (result as any).insertId
             });
+            
         } catch (error: any) {
             return res.status(400).json({ erro: error.message });
-    }
-},
+        }
+    },
 
-getAll: async (req:Request, res:Response) => {
-    try {
-        console.log("🏪 Carregando a vitrine de produtos...");
-        const products = await productService.getAllProducts() as any[];
+getAll: async (req: Request, res: Response) => {
+        try {
+            // 1. Pega os  da URL (Se não mandar nada, assume Página 1 com 10 produtos)
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
 
-        return res.status(200).json({
-            total: products.length,
-            produtos: products
-        });
-    } catch (error:any) {
-        return res.status(400).json({ erro: error.message });
-        
-    }
-},
+            const offset = (page - 1) * limit;
+
+            console.log(`📄 Buscando Produtos - Página: ${page} | Limite: ${limit}...`);
+
+            const result = await productService.getAllProducts(limit, offset);
+
+            const totalPages = Math.ceil(result.total / limit);
+
+            return res.status(200).json({
+                dados: result.items,
+                paginacao: {
+                    pagina_atual: page,
+                    itens_por_pagina: limit,
+                    total_de_itens: result.total,
+                    total_de_paginas: totalPages
+                }
+            });
+        } catch (error: any) {
+            return res.status(400).json({ erro: error.message });
+        }
+    },
 
 getById: async (req:Request, res: Response) => {
     try{
@@ -56,7 +82,6 @@ update: async (req: Request, res: Response) => {
         const userData = (req as any).user;
         const productData = req.body;
 
-        // Corrigido: Trocado vírgula por ponto e 'productId' por 'id'
         const product = await productService.getProductById(id); 
 
         if (product.seller_id !== userData.id && userData.role !== 'admin') {
@@ -78,7 +103,6 @@ delete: async (req: Request, res: Response) => {
         const id = parseInt(req.params.id as string); // 👈 Variável chama 'id'
         const userData = (req as any).user;
 
-        // Corrigido: Trocado 'productId' por 'id'
         const product = await productService.getProductById(id);
 
         if (product.seller_id !== userData.id && userData.role !== 'admin') {

@@ -12,12 +12,12 @@ const productService = {
     return result;
     },
 
-    getAllProducts: async () => {
+    getAllProducts: async (limit: number, offset: number) => {
         try {
-            const products = await productRepository.findAll();
-            return products;
+            const result = await productRepository.findAll(limit, offset);
+            return result;
         } catch (error) {
-            throw new Error("Erro ao carregar a vitrine de produtos")
+            throw new Error("Erro ao carregar a vitrine de produtos");
         }
     },
 

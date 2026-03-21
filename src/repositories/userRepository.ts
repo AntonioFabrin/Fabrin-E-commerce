@@ -16,22 +16,15 @@ const userRepository = {
         return result.insertId;
     },
 
-    update: async (id: number, userData: any) => {
-        try {
-            const query = 'UPDATE users SET name = ?, email = ? WHERE id = ?';
-            console.log("Executando SQL para o ID:", id);
+async update(id: number, userData: any) {
+    const name = userData.name ?? null;
+    const email = userData.email ?? null;
+    const role = userData.role ?? null;
 
-            const [result ]: any = await db.execute (query, [
-                userData.name,
-                userData.email,
-                id
-            ]);
-            return result.affectedRows > 0;
-        } catch (error) {
-            console.error("Erro no SQL do Update:", error);
-            throw error;
-        }
-    },
+    const query = "UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), role = COALESCE(?, role) WHERE id = ?";
+    
+    return await db.execute(query, [name, email, role, id]);
+},
 
     findById: async (id:number) => {
         const query = 'SELECT * FROM users WHERE id = ?';

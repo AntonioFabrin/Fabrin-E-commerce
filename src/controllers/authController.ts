@@ -38,20 +38,18 @@ const authController = {
          }
     },
 
-    update: async (req: Request, res: Response) => {
-        try {
-            const { id } = req.params; 
-            const { name, email } = req.body;
+    // No seu authController.ts
+update: async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { role, name, email } = req.body;
 
-            await authService.updateUser(Number(id),{name, email});
+        await authService.updateUser(Number(id), { role, name, email });
 
-            return res.json
-            ({ mensagem: `Usuário ${id} atualizado!`,
-            dadosNovos: {name, email}
-        });
-        } catch (error: any) {
-            return res.status(400).json({ erro: error.message });
-        }
+        return res.json({ mensagem: "Usuário atualizado com sucesso!" });
+    } catch (error: any) {
+        return res.status(400).json({ erro: error.message });
+    }
     },
 
     delete: async (req: Request, res: Response) => {

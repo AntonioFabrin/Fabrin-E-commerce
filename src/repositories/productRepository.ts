@@ -20,11 +20,20 @@ const productRepository = {
         }
     },
 
-    findAll: async () => {
+    findAll: async (limit: number, offset: number) => {
         try {
-            const query = 'SELECT * FROM products';
-            const [rows] = await db.execute(query);
-            return rows;
+            const query = 'SELECT * FROM products ORDER BY id DESC LIMIT ? OFFSET ?';
+            const [rows] = await db.execute(query, [limit.toString(), offset.toString()]);
+
+            // 2. Conta quantos produtos existem no total na loja
+            const countQuery = 'SELECT COUNT(*) as total FROM products';
+            const [countResult] = await db.execute(countQuery);
+            const totalItems = (countResult as any)[0].total;
+
+            return {
+                items: rows as any[],
+                total: totalItems
+            };
         } catch (error) {
             console.error("❌ Erro ao buscar produtos:", error);
             throw error;
