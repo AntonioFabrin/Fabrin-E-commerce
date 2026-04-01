@@ -7,6 +7,17 @@ import Link from 'next/link';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 
+// Decodifica o payload do JWT sem biblioteca externa
+function decodeToken(token: string): { id: number; role: string } | null {
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload));
+    return { id: decoded.id, role: decoded.role };
+  } catch {
+    return null;
+  }
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
@@ -22,18 +33,27 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [forbidden, setForbidden] = useState(false); // true = produto de outro vendedor
 
   useEffect(() => {
     const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) { router.push('/login'); return; }
+
+    const user = decodeToken(token);
+    if (!user) { router.push('/login'); return; }
 
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`http://localhost:3333/api/products/${productId}`);
         const p = response.data;
+
+        // Bloqueia no frontend se não for o dono e não for admin
+        if (user.role !== 'admin' && p.seller_id !== user.id) {
+          setForbidden(true);
+          setLoading(false);
+          return;
+        }
+
         setName(p.name ?? '');
         setDescription(p.description ?? '');
         setPrice(String(p.price ?? ''));
@@ -78,6 +98,7 @@ export default function EditProductPage() {
     }
   };
 
+  // Loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-128px)]">
@@ -88,6 +109,24 @@ export default function EditProductPage() {
           </svg>
           <span className="text-zinc-500 text-sm">Carregando produto...</span>
         </div>
+      </div>
+    );
+  }
+
+  // Acesso negado — produto de outro vendedor
+  if (forbidden) {
+    return (
+      <div className="max-w-md mx-auto py-20 px-4 text-center">
+        <div className="text-6xl mb-6">🔒</div>
+        <h1 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Syne', sans-serif" }}>
+          Acesso Negado
+        </h1>
+        <p className="text-zinc-500 text-sm mb-8">
+          Você não pode editar produtos de outros vendedores. Apenas o dono do produto ou um administrador pode fazer isso.
+        </p>
+        <Button variant="outline" className="w-auto px-8 mx-auto" onClick={() => router.push('/products')}>
+          ← Voltar para a Loja
+        </Button>
       </div>
     );
   }
@@ -111,8 +150,7 @@ export default function EditProductPage() {
 
       {error && (
         <div className="mb-6 p-4 bg-rose-950/50 border border-rose-800/60 rounded-xl text-rose-400 text-sm flex items-start gap-3">
-          <span>⚠</span>
-          <span>{error}</span>
+          <span>⚠</span><span>{error}</span>
         </div>
       )}
 
@@ -158,17 +196,11 @@ export default function EditProductPage() {
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest block mb-3">
               Imagem do Produto
             </label>
-
             {(imagePreview || currentImage) && (
               <div className="mb-3 rounded-xl overflow-hidden border border-zinc-700 h-44 bg-zinc-800 flex items-center justify-center">
-                <img
-                  src={imagePreview ?? currentImage ?? ''}
-                  alt="Preview"
-                  className="max-h-44 object-contain"
-                />
+                <img src={imagePreview ?? currentImage ?? ''} alt="Preview" className="max-h-44 object-contain" />
               </div>
             )}
-
             <label className="flex items-center gap-3 px-4 py-3 border border-dashed border-zinc-700 hover:border-indigo-500 rounded-xl cursor-pointer transition-all hover:bg-indigo-950/20 text-sm text-zinc-400 hover:text-zinc-200">
               <span>📷</span>
               <span>{imageFile ? imageFile.name : 'Clique para trocar a imagem (opcional)'}</span>

@@ -25,7 +25,6 @@ const productRepository = {
             const query = 'SELECT * FROM products ORDER BY id DESC LIMIT ? OFFSET ?';
             const [rows] = await db.execute(query, [limit.toString(), offset.toString()]);
 
-            // 2. Conta quantos produtos existem no total na loja
             const countQuery = 'SELECT COUNT(*) as total FROM products';
             const [countResult] = await db.execute(countQuery);
             const totalItems = (countResult as any)[0].total;
@@ -40,21 +39,32 @@ const productRepository = {
         }
     },
 
-    findById: async (id: number) => {
+    // ✅ NOVO: busca produtos de um vendedor específico pelo seller_id
+    findBySeller: async (sellerId: number) => {
         try {
-            const query = 'SELECT * FROM products WHERE id = ?';
-            const [rows] = await db.execute(query, [id]);
-
-            return (rows as any []) [0]; 
+            const query = 'SELECT * FROM products WHERE seller_id = ? ORDER BY id DESC';
+            const [rows] = await db.execute(query, [sellerId]);
+            return rows as any[];
         } catch (error) {
-            console.error("❌ Erro ao buscar produto específico:", error)
+            console.error("❌ Erro ao buscar produtos do vendedor:", error);
             throw error;
         }
     },
 
-    update: async (id:number, productData: any) => {
+    findById: async (id: number) => {
         try {
-            const {name, description, price, stock, image_url} = productData;
+            const query = 'SELECT * FROM products WHERE id = ?';
+            const [rows] = await db.execute(query, [id]);
+            return (rows as any[])[0]; 
+        } catch (error) {
+            console.error("❌ Erro ao buscar produto específico:", error);
+            throw error;
+        }
+    },
+
+    update: async (id: number, productData: any) => {
+        try {
+            const { name, description, price, stock, image_url } = productData;
             
             const query = `
                 UPDATE products
@@ -63,21 +73,21 @@ const productRepository = {
             `;
             
             const values = [name, description, price, stock, image_url, id];
-            const [result] = await db.execute(query, values)
+            const [result] = await db.execute(query, values);
             return result;
         } catch (error) {
-            console.error("❌ Erro ao atualizar produto no banco:",error)
+            console.error("❌ Erro ao atualizar produto no banco:", error);
             throw error;
         }
     },
 
-    delete: async (id:number) => {
+    delete: async (id: number) => {
         try {
             const query = 'DELETE FROM products WHERE id = ?';
-            const [result] = await db.execute(query,[id]);
+            const [result] = await db.execute(query, [id]);
             return result;
         } catch (error) {
-            console.error ("❌ Erro ao deletar produto no banco:", error);
+            console.error("❌ Erro ao deletar produto no banco:", error);
             throw error;
         }
     }

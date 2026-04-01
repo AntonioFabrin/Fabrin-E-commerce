@@ -30,31 +30,34 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [productCount, setProductCount] = useState(0);
+  const [sellerOrderCount, setSellerOrderCount] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) { router.push('/login'); return; }
 
-    const fetchSellerData = async () => {
+    const fetchData = async () => {
       try {
-        // Usa a rota /seller que agora existe no backend
-        const response = await axios.get('http://localhost:3333/api/products/seller', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // Retorna array direto
-        const products = Array.isArray(response.data) ? response.data : [];
-        setProductCount(products.length);
-      } catch {
-        setProductCount(0);
-      } finally {
+        const headers = { Authorization: `Bearer ${token}` };
+        const [productsRes, ordersRes] = await Promise.allSettled([
+          axios.get('http://localhost:3333/api/products/seller', { headers }),
+          axios.get('http://localhost:3333/api/orders/seller', { headers }),
+        ]);
+
+        if (productsRes.status === 'fulfilled') {
+          const products = Array.isArray(productsRes.value.data) ? productsRes.value.data : [];
+          setProductCount(products.length);
+        }
+        if (ordersRes.status === 'fulfilled') {
+          const orders = Array.isArray(ordersRes.value.data) ? ordersRes.value.data : [];
+          setSellerOrderCount(orders.length);
+        }
+      } catch { /* silencia */ } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSellerData();
+    fetchData();
   }, [router]);
 
   const handleLogout = () => {
@@ -79,7 +82,6 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 md:px-6">
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div>
           <p className="text-zinc-500 text-sm mb-1">Bem-vindo de volta 👋</p>
@@ -98,14 +100,14 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
         <StatCard label="Total de Produtos" value={productCount} accent="bg-indigo-500" icon="📦" />
-        <StatCard label="Vendas do mês" value="R$ 0,00" accent="bg-emerald-500" icon="💰" />
-        <StatCard label="Pedidos" value="0" accent="bg-violet-500" icon="🛒" />
+        <StatCard label="Pedidos Recebidos" value={sellerOrderCount} accent="bg-emerald-500" icon="🛒" />
+        <StatCard label="Vendas do mês" value="R$ 0,00" accent="bg-violet-500" icon="💰" />
       </div>
 
       {/* Ações rápidas */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-5">Ações Rápidas</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/products/create" className="block">
             <div className="border border-zinc-700 hover:border-indigo-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-indigo-950/30">
               <div className="text-2xl mb-3">➕</div>
@@ -118,6 +120,18 @@ export default function DashboardPage() {
               <div className="text-2xl mb-3">📦</div>
               <p className="font-semibold text-white text-sm">Meus Produtos</p>
               <p className="text-zinc-500 text-xs mt-1">Gerenciar estoque e preços</p>
+            </div>
+          </Link>
+          <Link href="/orders" className="block">
+            <div className="border border-zinc-700 hover:border-amber-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-amber-950/30 relative">
+              <div className="text-2xl mb-3">🧾</div>
+              <p className="font-semibold text-white text-sm">Pedidos</p>
+              <p className="text-zinc-500 text-xs mt-1">Compras e vendas recebidas</p>
+              {sellerOrderCount > 0 && (
+                <span className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {sellerOrderCount}
+                </span>
+              )}
             </div>
           </Link>
           <Link href="/products" className="block">

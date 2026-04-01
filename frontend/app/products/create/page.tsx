@@ -12,8 +12,6 @@ export default function CreateProductPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [sellerId, setSellerId] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,25 +31,19 @@ export default function CreateProductPage() {
     setLoading(true);
     setError('');
     const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) { router.push('/login'); return; }
+
     try {
       const formData = new FormData();
       formData.append('name', name);
       formData.append('description', description);
       formData.append('price', price);
       formData.append('stock', stock);
-      formData.append('category_id', categoryId);
-      formData.append('seller_id', sellerId);
+      formData.append('category_id', '1'); // valor padrão — seller_id vem do token no backend
       if (imageFile) formData.append('image', imageFile);
 
       await axios.post('http://localhost:3333/api/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
       });
       router.push('/dashboard');
     } catch (err: any) {
@@ -64,7 +56,6 @@ export default function CreateProductPage() {
   return (
     <div className="max-w-2xl mx-auto py-10 px-4 md:px-6">
 
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8">
         <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">Dashboard</Link>
         <span>/</span>
@@ -78,8 +69,7 @@ export default function CreateProductPage() {
 
       {error && (
         <div className="mb-6 p-4 bg-rose-950/50 border border-rose-800/60 rounded-xl text-rose-400 text-sm flex items-start gap-3">
-          <span>⚠</span>
-          <span>{error}</span>
+          <span>⚠</span><span>{error}</span>
         </div>
       )}
 
@@ -124,26 +114,6 @@ export default function CreateProductPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="ID da Categoria"
-              type="number"
-              placeholder="1"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-            />
-            <Input
-              label="Seu ID de Vendedor"
-              type="number"
-              placeholder="2"
-              value={sellerId}
-              onChange={(e) => setSellerId(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Upload de imagem */}
           <div>
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest block mb-3">
               Foto do Produto
@@ -166,9 +136,7 @@ export default function CreateProductPage() {
                 required
               />
             </label>
-            {imageFile && (
-              <p className="text-zinc-500 text-xs mt-2 text-center">{imageFile.name}</p>
-            )}
+            {imageFile && <p className="text-zinc-500 text-xs mt-2 text-center">{imageFile.name}</p>}
           </div>
 
           <div className="flex gap-4 pt-2">
@@ -183,13 +151,7 @@ export default function CreateProductPage() {
                 </span>
               ) : 'Publicar Produto'}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="flex-1"
-              onClick={() => router.push('/dashboard')}
-            >
+            <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => router.push('/dashboard')}>
               Cancelar
             </Button>
           </div>

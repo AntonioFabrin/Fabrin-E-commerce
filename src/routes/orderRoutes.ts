@@ -1,12 +1,16 @@
-import { Router } from "express";
-import orderController from "../controllers/orderController";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { Router } from 'express';
+import orderController from '../controllers/orderController';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
-const router = Router ();
+const router = Router();
 
-router.post ('/', authMiddleware, orderController.create);
+// Criar pedido via carrinho
+router.post('/', authMiddleware, orderController.create);
 
-router.get('/orders', authMiddleware, orderController.listMyOrders);
+// Pedidos do comprador — "Meus Pedidos"
+router.get('/my', authMiddleware, orderController.listMyOrders);
 
+// Pedidos recebidos pelo vendedor — "Pedidos Recebidos"
+router.get('/seller', authMiddleware, orderController.listSellerOrders);
 
 export default router;

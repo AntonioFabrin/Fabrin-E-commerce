@@ -1,4 +1,4 @@
-import { Request, Response} from 'express';
+import { Request, Response } from 'express';
 import productService from '../services/productService';
 
 const productController = {
@@ -6,7 +6,12 @@ const productController = {
         try {
             console.log("Recebendo dados para novo anúncio...");
             
-            const { seller_id, name, description, price, stock, category_id } = req.body;
+            const { name, description, price, stock, category_id } = req.body;
+            const userData = (req as any).user;
+
+            if (!userData) {
+                return res.status(401).json({ erro: "Usuário não autenticado ou token inválido." });
+            }
             
             let image_url = '';
             if (req.file) {
@@ -16,11 +21,11 @@ const productController = {
             }
 
             const newProduct = {
-                seller_id: Number(seller_id),
+                seller_id: userData.id,
                 name,
                 description,
-                price: Number(price),      
-                stock: Number(stock),      
+                price: Number(price),
+                stock: Number(stock),
                 category_id: Number(category_id),
                 image_url
             };
@@ -37,18 +42,15 @@ const productController = {
         }
     },
 
-getAll: async (req: Request, res: Response) => {
+    getAll: async (req: Request, res: Response) => {
         try {
-            // 1. Pega os  da URL (Se não mandar nada, assume Página 1 com 10 produtos)
             const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-
+            const limit = parseInt(req.query.limit as string) || 50;
             const offset = (page - 1) * limit;
 
             console.log(`📄 Buscando Produtos - Página: ${page} | Limite: ${limit}...`);
 
             const result = await productService.getAllProducts(limit, offset);
-
             const totalPages = Math.ceil(result.total / limit);
 
             return res.status(200).json({
@@ -65,60 +67,86 @@ getAll: async (req: Request, res: Response) => {
         }
     },
 
-getById: async (req:Request, res: Response) => {
-    try{
-        const id = parseInt(req.params.id as string);
-        console.log (`🔍 Buscando detalhes do produto ID: ${id}...`);
-        const product = await productService.getProductById(id);
-        return res.status(200).json(product);
-    } catch (error: any) {
-        return res.status(404).json ({erro: error.message});
-    }
-},
-
-update: async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string); // 👈 Variável chama 'id'
-        const userData = (req as any).user;
-        const productData = req.body;
-
-        const product = await productService.getProductById(id); 
-
-        if (product.seller_id !== userData.id && userData.role !== 'admin') {
-            return res.status(403).json({
-                erro: "Acesso negado! Você não pode editar um produto que não é seu"
-            });
+    // ✅ NOVO: retorna produtos do vendedor autenticado via JWT
+    getMySeller: async (req: Request, res: Response) => {
+        try {
+            const userData = (req as any).user;
+            if (!userData) {
+                return res.status(401).json({ erro: "Não autenticado." });
+            }
+            console.log(`📦 Buscando produtos do vendedor ID: ${userData.id}...`);
+            const products = await productService.getProductsBySeller(userData.id);
+            return res.status(200).json(products);
+        } catch (error: any) {
+            return res.status(400).json({ erro: error.message });
         }
+    },
 
-        console.log(`✏️ Atualizando produto ID: ${id}...`);
-        await productService.updateProduct(id, productData);
-        return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
-    } catch (error: any) {
-        return res.status(400).json({ erro: error.message });
-    }
-},
-
-delete: async (req: Request, res: Response) => {
-    try {
-        const id = parseInt(req.params.id as string); // 👈 Variável chama 'id'
-        const userData = (req as any).user;
-
-        const product = await productService.getProductById(id);
-
-        if (product.seller_id !== userData.id && userData.role !== 'admin') {
-            return res.status(403).json({
-                erro: "Acesso negado! Você não pode deletar um produto de outro vendedor."
-            });
+    getById: async (req: Request, res: Response) => {
+        try {
+            const id = parseInt(req.params.id as string);
+            console.log(`🔍 Buscando detalhes do produto ID: ${id}...`);
+            const product = await productService.getProductById(id);
+            return res.status(200).json(product);
+        } catch (error: any) {
+            return res.status(404).json({ erro: error.message });
         }
+    },
 
-        console.log(`🗑️ Deletando produto ID: ${id}...`);
-        await productService.deleteProduct(id);
-        return res.status(200).json({ mensagem: "Produto removido da loja com sucesso!" });
-    } catch (error: any) {
-        return res.status(400).json({ erro: error.message });
+    update: async (req: Request, res: Response) => {
+        try {
+            const id = parseInt(req.params.id as string);
+            const userData = (req as any).user;
+            const productData = req.body;
+
+            if (!userData) {
+                return res.status(401).json({ erro: "Sessão expirada. Faça login novamente." });
+            }
+
+            const product = await productService.getProductById(id);
+
+            if (!product) {
+                return res.status(404).json({ erro: "Produto não encontrado." });
+            }
+
+            if (product.seller_id !== userData.id && userData.role !== 'admin') {
+                return res.status(403).json({
+                    erro: "Acesso negado! Você não pode editar um produto que não é seu."
+                });
+            }
+
+            console.log(`✏️ Atualizando produto ID: ${id}...`);
+            await productService.updateProduct(id, productData);
+            return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
+        } catch (error: any) {
+            return res.status(400).json({ erro: error.message });
+        }
+    },
+
+    delete: async (req: Request, res: Response) => {
+        try {
+            const id = parseInt(req.params.id as string);
+            const userData = (req as any).user;
+
+            const product = await productService.getProductById(id);
+
+            if (!product) {
+                return res.status(404).json({ erro: "Produto não encontrado." });
+            }
+
+            if (product.seller_id !== userData.id && userData.role !== 'admin') {
+                return res.status(403).json({
+                    erro: "Acesso negado! Você não pode deletar um produto de outro vendedor."
+                });
+            }
+
+            console.log(`🗑️ Deletando produto ID: ${id}...`);
+            await productService.deleteProduct(id);
+            return res.status(200).json({ mensagem: "Produto removido da loja com sucesso!" });
+        } catch (error: any) {
+            return res.status(400).json({ erro: error.message });
+        }
     }
-}
-
 };
 
 export default productController;
