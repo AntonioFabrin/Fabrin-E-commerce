@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
@@ -8,36 +7,18 @@ import { Button } from '../../components/ui/Button';
 import { Stars } from '../../components/ui/Stars';
 import { useCart } from '../../contexts/CartContext';
 
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  image_url: string;
-  seller_id: number;
-}
-
-interface ReviewStat {
-  product_id: number;
-  total: number;
-  average: number;
-}
+interface Product { id: number; name: string; description: string; price: number; stock: number; image_url: string; seller_id: number; }
+interface ReviewStat { product_id: number; total: number; average: number; }
 
 function decodeToken(token: string): { id: number; role: string } | null {
-  try {
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload));
-    return { id: decoded.id, role: decoded.role };
-  } catch { return null; }
+  try { return JSON.parse(atob(token.split('.')[1])); } catch { return null; }
 }
 
 export default function ProductsPage() {
   const router = useRouter();
   const { addItem, isInCart } = useCart();
-
   const [products, setProducts] = useState<Product[]>([]);
-  const [reviewStats, setReviewStats] = useState<Record<number, ReviewStat>>({});
+  const [stats, setStats] = useState<Record<number, ReviewStat>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [currentUser, setCurrentUser] = useState<{ id: number; role: string } | null>(null);
@@ -46,21 +27,17 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3333/api/products?limit=50');
-      const data = response.data.dados ?? response.data;
+      const res = await axios.get('http://localhost:3333/api/products?limit=50');
+      const data = res.data.dados ?? res.data;
       const list: Product[] = Array.isArray(data) ? data : [];
       setProducts(list);
-
-      // Busca médias de avaliações em uma única chamada
-      if (list.length > 0) {
+      if (list.length) {
         try {
-          const statsRes = await axios.post('http://localhost:3333/api/reviews/bulk-stats', {
-            productIds: list.map(p => p.id),
-          });
-          const statsMap: Record<number, ReviewStat> = {};
-          for (const s of statsRes.data) statsMap[s.product_id] = s;
-          setReviewStats(statsMap);
-        } catch { /* silencia se não tiver reviews */ }
+          const sr = await axios.post('http://localhost:3333/api/reviews/bulk-stats', { productIds: list.map(p => p.id) });
+          const m: Record<number, ReviewStat> = {};
+          for (const s of sr.data) m[s.product_id] = s;
+          setStats(m);
+        } catch { /* sem reviews ainda */ }
       }
     } catch { setProducts([]); } finally { setLoading(false); }
   };
@@ -71,25 +48,24 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const canEditProduct = (product: Product) => {
+  const canEdit = (p: Product) => {
     if (!currentUser) return false;
     if (currentUser.role === 'admin') return true;
-    return product.seller_id === currentUser.id;
+    return p.seller_id === currentUser.id;
   };
 
-  const handleAddToCart = (product: Product) => {
-    addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url, stock: product.stock, seller_id: product.seller_id });
-    setAddedMap(prev => ({ ...prev, [product.id]: true }));
-    setTimeout(() => setAddedMap(prev => ({ ...prev, [product.id]: false })), 1500);
+  const handleAddToCart = (p: Product) => {
+    addItem({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, stock: p.stock, seller_id: p.seller_id });
+    setAddedMap(prev => ({ ...prev, [p.id]: true }));
+    setTimeout(() => setAddedMap(prev => ({ ...prev, [p.id]: false })), 1600);
   };
 
-  const handleDelete = async (product: Product) => {
-    if (!canEditProduct(product)) return;
-    if (!confirm(`Remover "${product.name}"?`)) return;
+  const handleDelete = async (p: Product) => {
+    if (!confirm(`Remover "${p.name}"?`)) return;
     const token = localStorage.getItem('@Ecommerce:token');
     try {
-      await axios.delete(`http://localhost:3333/api/products/${product.id}`, { headers: { Authorization: `Bearer ${token}` } });
-      setProducts(prev => prev.filter(p => p.id !== product.id));
+      await axios.delete(`http://localhost:3333/api/products/${p.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      setProducts(prev => prev.filter(x => x.id !== p.id));
     } catch (err: any) { alert(err.response?.data?.erro || 'Erro ao remover.'); }
   };
 
@@ -97,175 +73,264 @@ export default function ProductsPage() {
   const isLoggedIn = !!currentUser;
   const isAdmin = currentUser?.role === 'admin';
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-128px)] gap-4">
-        <svg className="animate-spin w-10 h-10 text-indigo-500" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-        </svg>
-        <span className="text-zinc-500 text-sm">Carregando a loja...</span>
-      </div>
-    );
-  }
+  const Spinner = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
+      <div style={{ width: 40, height: 40, border: '3px solid var(--mist)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ color: 'var(--muted)', fontSize: 14 }}>Carregando produtos...</p>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  if (loading) return <Spinner />;
 
   return (
-    <div className="max-w-7xl mx-auto py-10 px-4 md:px-6">
-      <div className="mb-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-2">Marketplace</p>
-            <h1 className="text-4xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>Nossos Produtos</h1>
-            <p className="text-zinc-500 text-sm mt-1">{products.length} produto{products.length !== 1 ? 's' : ''} disponíve{products.length !== 1 ? 'is' : 'l'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={fetchProducts} className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white text-sm font-semibold rounded-lg transition-all">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Atualizar
-            </button>
-            {isLoggedIn && (
-              <Link href="/products/create">
-                <Button variant="primary" size="md" className="w-auto px-5">➕ Novo Produto</Button>
-              </Link>
-            )}
-          </div>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+
+      {/* Hero simples */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--royal) 0%, var(--plum) 100%)',
+        borderRadius: 'var(--radius-xl)',
+        padding: '40px 40px',
+        marginBottom: 40,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 20,
+      }}>
+        <div>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'rgba(196,160,255,0.15)', border: '1px solid rgba(196,160,255,0.25)',
+            color: 'var(--lilac)', fontSize: 11, fontWeight: 600,
+            padding: '4px 14px', borderRadius: 'var(--radius-pill)',
+            letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 14,
+          }}>✦ Marketplace Premium</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, fontWeight: 700, color: '#F3E8FF', marginBottom: 8, lineHeight: 1.2 }}>
+            {products.length} produto{products.length !== 1 ? 's' : ''} disponíve{products.length !== 1 ? 'is' : 'l'}
+          </h1>
+          <p style={{ fontSize: 14, color: '#8B6BA8', margin: 0 }}>Compra segura · Pix, boleto e cartão · Entrega para todo o Brasil</p>
         </div>
-
-        {isLoggedIn && (
-          <div className={`mt-5 flex items-center gap-3 px-4 py-3 rounded-xl border ${isAdmin ? 'bg-violet-950/40 border-violet-800/50' : 'bg-amber-950/40 border-amber-800/50'}`}>
-            <span className="text-xl">{isAdmin ? '🛡️' : '🔧'}</span>
-            <div>
-              <p className={`text-xs font-semibold ${isAdmin ? 'text-violet-400' : 'text-amber-400'}`}>{isAdmin ? 'Modo Administrador' : 'Modo Vendedor'}</p>
-              <p className={`text-xs ${isAdmin ? 'text-violet-600' : 'text-amber-600'}`}>{isAdmin ? 'Você pode editar e remover qualquer produto.' : 'Você pode editar e remover apenas os seus produtos.'}</p>
-            </div>
-          </div>
-        )}
-
-        {products.length > 0 && (
-          <div className="mt-6 relative max-w-md">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">🔍</span>
-            <input type="text" placeholder="Buscar produto..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder-zinc-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={fetchProducts}
+            style={{ background: 'rgba(196,160,255,0.12)', border: '1px solid rgba(196,160,255,0.2)', color: '#C4A0FF', borderRadius: 'var(--radius-pill)', padding: '10px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+          >↻ Atualizar</button>
+          {isLoggedIn && (
+            <Link href="/products/create" style={{ textDecoration: 'none' }}>
+              <button style={{ background: 'var(--violet)', border: 'none', color: '#F3E8FF', borderRadius: 'var(--radius-pill)', padding: '10px 22px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                + Novo produto
+              </button>
+            </Link>
+          )}
+        </div>
       </div>
 
+      {/* Modo vendedor */}
+      {isLoggedIn && (
+        <div style={{
+          marginBottom: 24,
+          padding: '14px 20px',
+          background: isAdmin ? '#F5F3FF' : '#FFFBEB',
+          border: `1px solid ${isAdmin ? 'var(--mist)' : '#FDE68A'}`,
+          borderRadius: 'var(--radius-md)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 16 }}>{isAdmin ? '🛡️' : '🔧'}</span>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 600, color: isAdmin ? 'var(--violet)' : '#92400E', marginBottom: 2 }}>
+              {isAdmin ? 'Modo Administrador' : 'Modo Vendedor'}
+            </p>
+            <p style={{ fontSize: 12, color: isAdmin ? 'var(--muted)' : '#B45309' }}>
+              {isAdmin ? 'Você pode editar e remover qualquer produto.' : 'Você só pode editar e remover os seus próprios produtos.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Busca */}
+      {products.length > 0 && (
+        <div style={{ position: 'relative', maxWidth: 440, marginBottom: 32 }}>
+          <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: 16 }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar produto..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: '100%', padding: '12px 16px 12px 44px',
+              background: 'var(--white)', border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius-pill)', fontSize: 14, color: 'var(--ink)',
+              outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.2s',
+            }}
+            onFocus={e => { e.target.style.borderColor = 'var(--violet)'; e.target.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.1)'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+          />
+        </div>
+      )}
+
+      {/* Grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
           {filtered.map(product => {
-            const canEdit = canEditProduct(product);
+            const edit = canEdit(product);
             const inCart = isInCart(product.id);
             const justAdded = addedMap[product.id];
-            const stat = reviewStats[product.id];
+            const stat = stats[product.id];
 
             return (
-              <div key={product.id} className="group bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-900/20 transition-all duration-300 flex flex-col">
-
+              <div key={product.id} style={{
+                background: 'var(--white)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden',
+                display: 'flex', flexDirection: 'column',
+                transition: 'all 0.25s',
+                position: 'relative',
+              }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget;
+                  el.style.borderColor = 'var(--lilac)';
+                  el.style.boxShadow = '0 12px 40px rgba(124,58,237,0.12)';
+                  el.style.transform = 'translateY(-3px)';
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget;
+                  el.style.borderColor = 'var(--border)';
+                  el.style.boxShadow = 'none';
+                  el.style.transform = 'translateY(0)';
+                }}
+              >
                 {/* Imagem */}
-                <div className="h-52 bg-zinc-800 overflow-hidden relative">
+                <div style={{ height: 200, background: 'var(--mist)', position: 'relative', overflow: 'hidden' }}>
                   {product.image_url ? (
-                    <img src={`http://localhost:3333/${product.image_url}`} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={`http://localhost:3333/${product.image_url}`} alt={product.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+                      onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
+                      onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600 text-4xl">📦</div>
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, opacity: 0.3 }}>📦</div>
                   )}
 
                   {product.stock === 0 && (
-                    <div className="absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest border border-zinc-600 px-3 py-1 rounded-full">Esgotado</span>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,46,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ background: 'rgba(26,10,46,0.8)', color: '#C4A0FF', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 'var(--radius-pill)', border: '1px solid rgba(196,160,255,0.3)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Esgotado</span>
                     </div>
                   )}
 
-                  {canEdit && (
-                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => router.push(`/products/${product.id}`)} className="w-8 h-8 bg-zinc-900/90 hover:bg-indigo-600 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center text-xs transition-all">✏️</button>
-                      <button onClick={() => handleDelete(product)} className="w-8 h-8 bg-zinc-900/90 hover:bg-rose-600 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center text-xs transition-all">🗑️</button>
-                    </div>
-                  )}
+                  {/* Badges */}
+                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
+                    {isLoggedIn && !isAdmin && product.seller_id === currentUser?.id && (
+                      <span style={{ background: 'var(--violet)', color: '#F3E8FF', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 'var(--radius-pill)' }}>Meu produto</span>
+                    )}
+                    {inCart && !edit && (
+                      <span style={{ background: '#059669', color: '#ECFDF5', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 'var(--radius-pill)' }}>✓ Carrinho</span>
+                    )}
+                  </div>
 
-                  {isLoggedIn && !isAdmin && product.seller_id === currentUser?.id && (
-                    <div className="absolute top-2 left-2">
-                      <span className="text-xs font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-full">Meu produto</span>
-                    </div>
-                  )}
-                  {inCart && !canEdit && (
-                    <div className="absolute top-2 left-2">
-                      <span className="text-xs font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">✓ No carrinho</span>
+                  {/* Edit buttons */}
+                  {edit && (
+                    <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6 }}>
+                      <button onClick={() => router.push(`/products/${product.id}`)}
+                        style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.92)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                      <button onClick={() => handleDelete(product)}
+                        style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.92)', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗑️</button>
                     </div>
                   )}
                 </div>
 
                 {/* Info */}
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="font-bold text-white text-sm line-clamp-1 mb-1">{product.name}</h3>
-                  <p className="text-zinc-500 text-xs line-clamp-2 leading-relaxed mb-2">{product.description}</p>
+                <div style={{ padding: '18px 18px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--royal)', marginBottom: 4, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {product.name}
+                  </p>
+                  <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {product.description}
+                  </p>
 
-                  {/* ⭐ Estrelas de avaliação */}
-                  <div className="flex items-center gap-2 mb-3">
-                    {stat && stat.total > 0 ? (
+                  {/* Estrelas */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    {stat?.total > 0 ? (
                       <>
                         <Stars rating={Number(stat.average)} size="sm" />
-                        <span className="text-amber-400 text-xs font-bold">{Number(stat.average).toFixed(1)}</span>
-                        <span className="text-zinc-600 text-xs">({stat.total})</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#D97706' }}>{Number(stat.average).toFixed(1)}</span>
+                        <span style={{ fontSize: 11, color: 'var(--muted)' }}>({stat.total})</span>
                       </>
                     ) : (
-                      <span className="text-zinc-700 text-xs">Sem avaliações ainda</span>
+                      <span style={{ fontSize: 11, color: '#C4B5D4' }}>Sem avaliações ainda</span>
                     )}
                   </div>
 
-                  <div className="mt-auto">
-                    <span className="text-xl font-black text-indigo-400" style={{ fontFamily: "'Syne', sans-serif" }}>
-                      R$ {Number(product.price).toFixed(2).replace('.', ',')}
-                    </span>
-                    <p className="text-xs text-zinc-600 mt-0.5">{product.stock} em estoque</p>
-                  </div>
-
-                  {canEdit ? (
-                    <button onClick={() => router.push(`/products/${product.id}`)} className="mt-4 w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-sm font-semibold rounded-lg transition-all">
-                      ✏️ Editar Produto
-                    </button>
-                  ) : (
-                    <div className="mt-4 flex flex-col gap-2">
-                      <button
-                        disabled={product.stock === 0}
-                        onClick={() => product.stock > 0 && handleAddToCart(product)}
-                        className={`w-full py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                          justAdded ? 'bg-emerald-600 text-white'
-                          : inCart ? 'bg-zinc-800 hover:bg-zinc-700 border border-indigo-600/50 text-indigo-400'
-                          : 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300'
-                        } disabled:opacity-40 disabled:cursor-not-allowed`}
-                      >
-                        {justAdded ? '✓ Adicionado!' : inCart ? '+ Adicionar mais' : '🛒 Adicionar ao Carrinho'}
-                      </button>
-                      <button
-                        disabled={product.stock === 0}
-                        onClick={() => product.stock > 0 && router.push(`/cart?produto=${product.id}`)}
-                        className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-all"
-                      >
-                        {product.stock > 0 ? 'Comprar Agora' : 'Indisponível'}
-                      </button>
+                  <div style={{ marginTop: 'auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 12 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--royal)' }}>
+                        R$ {Number(product.price).toFixed(2).replace('.', ',')}
+                      </span>
                     </div>
-                  )}
+                    <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12 }}>{product.stock} em estoque</p>
+
+                    {edit ? (
+                      <button onClick={() => router.push(`/products/${product.id}`)}
+                        style={{ width: '100%', padding: '10px', background: 'var(--mist)', border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', color: 'var(--violet)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                        ✏️ Editar produto
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button
+                          disabled={product.stock === 0}
+                          onClick={() => product.stock > 0 && handleAddToCart(product)}
+                          style={{
+                            width: '100%', padding: '10px',
+                            background: justAdded ? '#059669' : inCart ? '#F5F3FF' : 'var(--mist)',
+                            border: `1px solid ${justAdded ? '#059669' : inCart ? 'var(--lilac)' : 'var(--border)'}`,
+                            borderRadius: 'var(--radius-pill)',
+                            color: justAdded ? '#ECFDF5' : inCart ? 'var(--violet)' : '#6B7280',
+                            fontSize: 13, fontWeight: 600, cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
+                            opacity: product.stock === 0 ? 0.4 : 1, transition: 'all 0.2s',
+                          }}
+                        >
+                          {justAdded ? '✓ Adicionado!' : inCart ? '+ Adicionar mais' : '🛒 Adicionar ao carrinho'}
+                        </button>
+                        <button
+                          disabled={product.stock === 0}
+                          onClick={() => product.stock > 0 && router.push(`/cart?produto=${product.id}`)}
+                          style={{
+                            width: '100%', padding: '10px',
+                            background: product.stock === 0 ? 'var(--mist)' : 'var(--violet)',
+                            border: 'none', borderRadius: 'var(--radius-pill)',
+                            color: product.stock === 0 ? 'var(--muted)' : '#F3E8FF',
+                            fontSize: 13, fontWeight: 600,
+                            cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
+                            opacity: product.stock === 0 ? 0.5 : 1, transition: 'all 0.2s',
+                          }}
+                        >
+                          {product.stock > 0 ? 'Comprar agora →' : 'Indisponível'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="border border-dashed border-zinc-700 rounded-2xl p-20 text-center">
+        <div style={{ border: '2px dashed var(--border)', borderRadius: 'var(--radius-lg)', padding: '80px 24px', textAlign: 'center' }}>
           {search ? (
             <>
-              <p className="text-4xl mb-4">🔍</p>
-              <h3 className="text-lg font-bold text-white mb-2">Nenhum resultado para &quot;{search}&quot;</h3>
-              <p className="text-zinc-500 text-sm">Tente outro termo de busca.</p>
+              <p style={{ fontSize: 40, marginBottom: 12 }}>🔍</p>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--royal)', marginBottom: 8 }}>Nenhum resultado para "{search}"</h3>
+              <p style={{ fontSize: 14, color: 'var(--muted)' }}>Tente outro termo de busca.</p>
             </>
           ) : (
             <>
-              <p className="text-4xl mb-4">🏪</p>
-              <h3 className="text-lg font-bold text-white mb-2">A loja está vazia</h3>
-              <p className="text-zinc-500 text-sm mb-6">Seja o primeiro a anunciar!</p>
-              <Link href="/products/create"><Button variant="primary" className="w-auto px-8 mx-auto">Criar anúncio</Button></Link>
+              <p style={{ fontSize: 40, marginBottom: 12 }}>🏪</p>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--royal)', marginBottom: 8 }}>A loja está vazia</h3>
+              <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>Seja o primeiro a anunciar!</p>
+              <Link href="/products/create" style={{ display: 'inline-block' }}>
+                <Button variant="primary" style={{ width: 'auto', padding: '12px 28px' }}>Criar anúncio →</Button>
+              </Link>
             </>
           )}
         </div>

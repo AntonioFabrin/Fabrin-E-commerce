@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -15,6 +14,13 @@ interface Product {
   image_url: string;
 }
 
+const Spin = () => (
+  <>
+    <div style={{ width: 36, height: 36, border: '3px solid var(--mist)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </>
+);
+
 export default function SellerProductsPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,177 +29,125 @@ export default function SellerProductsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    const fetchProducts = async () => {
-      try {
-        // Usa a rota /seller — retorna array direto dos produtos do usuário logado
-        const response = await axios.get('http://localhost:3333/api/products/seller', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = Array.isArray(response.data) ? response.data : [];
-        setProducts(data);
-      } catch (err: any) {
-        setError('Não foi possível carregar os produtos. Verifique se o backend está rodando.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
+    if (!token) { router.push('/login'); return; }
+    axios.get('http://localhost:3333/api/products/seller', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => setProducts(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setError('Não foi possível carregar os produtos.'))
+      .finally(() => setLoading(false));
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-128px)]">
-        <div className="flex flex-col items-center gap-3">
-          <svg className="animate-spin w-8 h-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <span className="text-zinc-500 text-sm">Carregando produtos...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 16 }}>
+      <Spin /><p style={{ color: 'var(--muted)', fontSize: 14 }}>Carregando produtos...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4 md:px-6">
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8">
-        <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">Dashboard</Link>
-        <span>/</span>
-        <span className="text-zinc-300">Meus Produtos</span>
+      <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
+        <Link href="/dashboard" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Dashboard</Link>
+        <span>/</span><span>Meus Produtos</span>
       </div>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Meus Produtos
-          </h1>
-          <p className="text-zinc-500 text-sm mt-1">
-            {products.length > 0
-              ? `${products.length} produto${products.length > 1 ? 's' : ''} cadastrado${products.length > 1 ? 's' : ''}`
-              : 'Nenhum produto cadastrado ainda'}
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 700, color: 'var(--royal)', marginBottom: 4 }}>Meus Produtos</h1>
+          <p style={{ fontSize: 14, color: 'var(--muted)' }}>
+            {products.length > 0 ? `${products.length} produto${products.length > 1 ? 's' : ''} cadastrado${products.length > 1 ? 's' : ''}` : 'Nenhum produto ainda'}
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm" className="w-auto" onClick={() => router.push('/dashboard')}>
-            ← Voltar
-          </Button>
-          <Button variant="primary" size="sm" className="w-auto" onClick={() => router.push('/products/create')}>
-            ➕ Novo Produto
-          </Button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Button variant="outline" size="sm" style={{ width: 'auto' }} onClick={() => router.push('/dashboard')}>← Voltar</Button>
+          <Button variant="primary" size="sm" style={{ width: 'auto' }} onClick={() => router.push('/products/create')}>+ Novo Produto</Button>
         </div>
       </div>
 
+      {/* Erro */}
       {error && (
-        <div className="mb-6 p-4 bg-rose-950/50 border border-rose-800/60 rounded-xl text-rose-400 text-sm">
+        <div style={{ marginBottom: 20, padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', fontSize: 13, color: '#DC2626' }}>
           {error}
         </div>
       )}
 
-      {/* Cards de resumo */}
+      {/* Stats */}
       {products.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Total</p>
-            <p className="text-2xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-              {products.length}
-            </p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Em Estoque</p>
-            <p className="text-2xl font-black text-emerald-400" style={{ fontFamily: "'Syne', sans-serif" }}>
-              {products.filter((p) => p.stock > 0).length}
-            </p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Sem Estoque</p>
-            <p className="text-2xl font-black text-rose-400" style={{ fontFamily: "'Syne', sans-serif" }}>
-              {products.filter((p) => p.stock === 0).length}
-            </p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Menor Preço</p>
-            <p className="text-xl font-black text-indigo-400" style={{ fontFamily: "'Syne', sans-serif" }}>
-              R$ {Math.min(...products.map((p) => Number(p.price))).toFixed(2).replace('.', ',')}
-            </p>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 28 }}>
+          {[
+            { label: 'Total', value: products.length, color: 'var(--violet)' },
+            { label: 'Em Estoque', value: products.filter(p => p.stock > 0).length, color: '#059669' },
+            { label: 'Sem Estoque', value: products.filter(p => p.stock === 0).length, color: '#DC2626' },
+            { label: 'Menor Preço', value: `R$ ${Math.min(...products.map(p => Number(p.price))).toFixed(2).replace('.', ',')}`, color: 'var(--violet)' },
+          ].map((s, i) => (
+            <div key={i} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px 20px' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 6 }}>{s.label}</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</p>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Tabela */}
       {products.length > 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-          <table className="w-full">
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-widest">Produto</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-widest hidden md:table-cell">Preço</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-widest hidden md:table-cell">Estoque</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4" />
+              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--cream)' }}>
+                {['Produto', 'Preço', 'Estoque', 'Status', ''].map((h, i) => (
+                  <th key={i} style={{ textAlign: 'left', padding: '12px 20px', fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {products.map((product, idx) => (
-                <tr
-                  key={product.id}
-                  className={`border-b border-zinc-800/60 last:border-0 hover:bg-zinc-800/30 transition-colors ${idx % 2 === 0 ? '' : 'bg-zinc-800/10'}`}
+                <tr key={product.id} style={{ borderBottom: idx < products.length - 1 ? '1px solid var(--border)' : 'none', background: idx % 2 === 1 ? 'var(--cream)' : 'transparent', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#F5F3FF')}
+                  onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 1 ? 'var(--cream)' : 'transparent')}
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-zinc-800 border border-zinc-700 overflow-hidden flex-shrink-0">
-                        {product.image_url ? (
-                          <img
-                            src={`http://localhost:3333/${product.image_url}`}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-zinc-600 text-lg">📦</div>
-                        )}
+                  {/* Produto */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
+                        {product.image_url
+                          ? <img src={`http://localhost:3333/${product.image_url}`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📦</div>
+                        }
                       </div>
                       <div>
-                        <p className="font-semibold text-white text-sm line-clamp-1">{product.name}</p>
-                        <p className="text-zinc-500 text-xs line-clamp-1 mt-0.5">{product.description}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--royal)', marginBottom: 2, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
+                        <p style={{ fontSize: 12, color: 'var(--muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.description}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 hidden md:table-cell">
-                    <span className="text-indigo-400 font-bold text-sm">
+                  {/* Preço */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--violet)' }}>
                       R$ {Number(product.price).toFixed(2).replace('.', ',')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 hidden md:table-cell">
-                    <span className="text-zinc-300 text-sm">{product.stock} un.</span>
+                  {/* Estoque */}
+                  <td style={{ padding: '14px 20px', fontSize: 14, color: 'var(--royal)' }}>{product.stock} un.</td>
+                  {/* Status */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                      background: product.stock > 0 ? '#ECFDF5' : '#FEF2F2',
+                      color: product.stock > 0 ? '#059669' : '#DC2626',
+                      border: `1px solid ${product.stock > 0 ? '#A7F3D0' : '#FECACA'}`,
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+                      {product.stock > 0 ? 'Ativo' : 'Sem estoque'}
+                    </span>
                   </td>
-                  <td className="px-6 py-4">
-                    {product.stock > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 text-xs font-semibold rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        Ativo
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-950/60 border border-rose-800/60 text-rose-400 text-xs font-semibold rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                        Sem estoque
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
+                  {/* Ação */}
+                  <td style={{ padding: '14px 20px', textAlign: 'right' }}>
                     <button
-                      className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors font-medium"
                       onClick={() => router.push(`/products/${product.id}`)}
-                    >
-                      Ver →
-                    </button>
+                      style={{ fontSize: 12, color: 'var(--violet)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)' }}
+                    >Editar →</button>
                   </td>
                 </tr>
               ))}
@@ -201,13 +155,11 @@ export default function SellerProductsPage() {
           </table>
         </div>
       ) : (
-        <div className="border border-dashed border-zinc-700 rounded-2xl p-16 text-center">
-          <p className="text-5xl mb-4">📦</p>
-          <h3 className="text-lg font-bold text-white mb-2">Nenhum produto ainda</h3>
-          <p className="text-zinc-500 text-sm mb-8">Adicione seu primeiro produto para começar a vender.</p>
-          <Button variant="primary" className="w-auto px-8 mx-auto" onClick={() => router.push('/products/create')}>
-            Criar primeiro produto
-          </Button>
+        <div style={{ border: '2px dashed var(--border)', borderRadius: 'var(--radius-lg)', padding: '64px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 48, marginBottom: 12 }}>📦</p>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--royal)', marginBottom: 8 }}>Nenhum produto ainda</h3>
+          <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>Adicione seu primeiro produto para começar a vender.</p>
+          <Button variant="primary" style={{ width: 'auto', padding: '12px 28px' }} onClick={() => router.push('/products/create')}>Criar primeiro produto →</Button>
         </div>
       )}
     </div>

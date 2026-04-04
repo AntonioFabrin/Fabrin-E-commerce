@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -8,149 +7,85 @@ import { useCart } from '../../contexts/CartContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 
-// ── Etapa 1: Itens do carrinho ─────────────────────────────────────────────────
+const Spin = () => (
+  <>
+    <div style={{ width: 36, height: 36, border: '3px solid var(--mist)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </>
+);
+
 function CartItems({ onNext }: { onNext: () => void }) {
-  const { items, totalItems, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
+  const { items, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
   const router = useRouter();
 
-  if (items.length === 0) {
-    return (
-      <div className="max-w-2xl mx-auto py-20 px-4 text-center">
-        <p className="text-6xl mb-6">🛒</p>
-        <h1 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "'Syne', sans-serif" }}>
-          Seu carrinho está vazio
-        </h1>
-        <p className="text-zinc-500 text-sm mb-8">Adicione produtos da loja para continuar.</p>
-        <Link href="/products">
-          <Button variant="primary" className="w-auto px-10 mx-auto">Explorar Loja</Button>
-        </Link>
-      </div>
-    );
-  }
+  if (!items.length) return (
+    <div style={{ maxWidth: 560, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+      <p style={{ fontSize: 56, marginBottom: 16 }}>🛒</p>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--royal)', marginBottom: 10 }}>Carrinho vazio</h2>
+      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 28 }}>Adicione produtos da loja para continuar.</p>
+      <Link href="/products" style={{ display: 'inline-block' }}><Button variant="primary" style={{ width: 'auto', padding: '12px 32px' }}>Explorar loja →</Button></Link>
+    </div>
+  );
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4 md:px-6">
-
-      <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8">
-        <Link href="/products" className="hover:text-indigo-400 transition-colors">Loja</Link>
-        <span>/</span>
-        <span className="text-zinc-300">Carrinho</span>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
+        <Link href="/products" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Loja</Link>
+        <span>/</span><span>Carrinho</span>
       </div>
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Meu Carrinho
-          </h1>
-          <p className="text-zinc-500 text-sm mt-1">
-            {totalItems} item{totalItems > 1 ? 's' : ''} selecionado{totalItems > 1 ? 's' : ''}
-          </p>
-        </div>
-        <button
-          onClick={() => { if (confirm('Limpar todo o carrinho?')) clearCart(); }}
-          className="text-xs text-zinc-600 hover:text-rose-400 transition-colors"
-        >
-          🗑 Limpar tudo
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 700, color: 'var(--royal)' }}>
+          Meu Carrinho <span style={{ fontSize: 18, color: 'var(--muted)', fontFamily: 'var(--font-body)', fontWeight: 400 }}>({items.length} iten{items.length > 1 ? 's' : ''})</span>
+        </h1>
+        <button onClick={() => confirm('Limpar carrinho?') && clearCart()} style={{ fontSize: 12, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Limpar tudo</button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Lista de itens */}
-        <div className="lg:col-span-2 space-y-4">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {items.map(item => (
-            <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex gap-4">
-              {/* Imagem */}
-              <div className="w-20 h-20 bg-zinc-800 rounded-xl overflow-hidden flex-shrink-0">
-                {item.image_url ? (
-                  <img
-                    src={`http://localhost:3333/${item.image_url}`}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-600 text-2xl">📦</div>
-                )}
+            <div key={item.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)', background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
+                {item.image_url ? <img src={`http://localhost:3333/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: 0.4 }}>📦</div>}
               </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-white text-sm line-clamp-1 mb-1">{item.name}</h3>
-                <p className="text-indigo-400 font-black text-base" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  R$ {Number(item.price).toFixed(2).replace('.', ',')}
-                </p>
-                <p className="text-zinc-600 text-xs mt-0.5">{item.stock} em estoque</p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 600, color: 'var(--royal)', fontSize: 14, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--violet)' }}>R$ {Number(item.price).toFixed(2).replace('.', ',')}</p>
               </div>
-
-              {/* Quantidade + remover */}
-              <div className="flex flex-col items-end justify-between gap-3">
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-zinc-600 hover:text-rose-400 transition-colors text-sm"
-                >
-                  ✕
-                </button>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-zinc-300 text-sm font-bold flex items-center justify-center transition-colors"
-                  >
-                    −
-                  </button>
-                  <span className="text-white font-bold text-sm w-6 text-center">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.id, Math.min(item.quantity + 1, item.stock))}
-                    disabled={item.quantity >= item.stock}
-                    className="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 rounded-lg text-zinc-300 text-sm font-bold flex items-center justify-center transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-
-                <p className="text-white font-bold text-sm">
-                  R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
-                </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--mist)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 16, fontWeight: 600, color: 'var(--royal)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--royal)', minWidth: 20, textAlign: 'center' }}>{item.quantity}</span>
+                <button onClick={() => updateQuantity(item.id, Math.min(item.quantity + 1, item.stock))} disabled={item.quantity >= item.stock} style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--mist)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 16, fontWeight: 600, color: 'var(--royal)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: item.quantity >= item.stock ? 0.4 : 1 }}>+</button>
+              </div>
+              <div style={{ textAlign: 'right', minWidth: 80 }}>
+                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--royal)', fontSize: 16 }}>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</p>
+                <button onClick={() => removeItem(item.id)} style={{ fontSize: 11, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>remover</button>
               </div>
             </div>
           ))}
         </div>
 
         {/* Resumo */}
-        <div className="lg:col-span-1">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sticky top-24">
-            <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-5">Resumo do Pedido</h2>
-
-            <div className="space-y-3 mb-5">
-              {items.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-zinc-500 line-clamp-1 flex-1 mr-2">
-                    {item.name} <span className="text-zinc-600">×{item.quantity}</span>
-                  </span>
-                  <span className="text-zinc-300 flex-shrink-0">
-                    R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-              ))}
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Resumo do pedido</p>
+          {items.map(item => (
+            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
+              <span style={{ color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 8 }}>{item.name} ×{item.quantity}</span>
+              <span style={{ color: 'var(--royal)', fontWeight: 500, flexShrink: 0 }}>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
             </div>
-
-            <div className="border-t border-zinc-800 pt-4 mb-6">
-              <div className="flex justify-between">
-                <span className="font-bold text-white">Total</span>
-                <span className="font-black text-indigo-400 text-xl" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  R$ {totalPrice.toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-              <p className="text-zinc-600 text-xs mt-1">Frete a calcular</p>
+          ))}
+          <div style={{ borderTop: '1px solid var(--border)', marginTop: 16, paddingTop: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+              <span style={{ fontWeight: 600, color: 'var(--royal)' }}>Total</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--royal)' }}>R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
             </div>
-
-            <Button variant="primary" size="lg" onClick={onNext}>
-              Continuar para Entrega →
-            </Button>
-
-            <Link href="/products" className="block text-center mt-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
-              ← Continuar comprando
-            </Link>
+            <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 20 }}>Frete a calcular</p>
+            <Button variant="primary" size="lg" onClick={onNext}>Continuar para entrega →</Button>
+            <Link href="/products" style={{ display: 'block', textAlign: 'center', marginTop: 12, fontSize: 13, color: 'var(--muted)', textDecoration: 'none' }}>← Continuar comprando</Link>
+          </div>
+          <div style={{ marginTop: 20, padding: '10px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+            <p style={{ fontSize: 11, color: 'var(--muted)' }}>⚡ Pix · 📄 Boleto · 💳 Cartão</p>
+            <p style={{ fontSize: 11, color: '#C4B5D4', marginTop: 2 }}>🔒 Mercado Pago</p>
           </div>
         </div>
       </div>
@@ -158,226 +93,126 @@ function CartItems({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ── Etapa 2: Endereço + Pagamento ──────────────────────────────────────────────
 function CartCheckout({ onBack }: { onBack: () => void }) {
   const { items, totalPrice, clearCart } = useCart();
-  const router = useRouter();
-
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [cep, setCep] = useState('');
-  const [street, setStreet] = useState('');
-  const [houseNumber, setHouseNumber] = useState('');
-  const [neighborhood, setNeighborhood] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [loadingCep, setLoadingCep] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [phone, setPhone] = useState('');
+  const [cep, setCep] = useState(''); const [street, setStreet] = useState(''); const [num, setNum] = useState('');
+  const [neighborhood, setNeighborhood] = useState(''); const [city, setCity] = useState(''); const [state, setState] = useState('');
+  const [loadingCep, setLoadingCep] = useState(false); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState('');
 
   const handleCepBlur = async () => {
-    const cleaned = cep.replace(/\D/g, '');
-    if (cleaned.length !== 8) return;
+    const c = cep.replace(/\D/g, '');
+    if (c.length !== 8) return;
     setLoadingCep(true);
     try {
-      const res = await axios.get(`https://viacep.com.br/ws/${cleaned}/json/`);
-      if (!res.data.erro) {
-        setStreet(res.data.logradouro || '');
-        setNeighborhood(res.data.bairro || '');
-        setCity(res.data.localidade || '');
-        setState(res.data.uf || '');
-      }
-    } catch { /* silencia */ } finally {
-      setLoadingCep(false);
-    }
+      const r = await axios.get(`https://viacep.com.br/ws/${c}/json/`);
+      if (!r.data.erro) { setStreet(r.data.logradouro || ''); setNeighborhood(r.data.bairro || ''); setCity(r.data.localidade || ''); setState(r.data.uf || ''); }
+    } catch { } finally { setLoadingCep(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (items.length === 0) return;
-    setSubmitting(true);
-    setError('');
-
+    setSubmitting(true); setError('');
+    const token = localStorage.getItem('@Ecommerce:token');
     try {
-      const token = localStorage.getItem('@Ecommerce:token');
-
-      // Monta um item de preferência consolidado com todos os produtos
-      // O MP aceita múltiplos items numa só preferência
-      const mpItems = items.map(item => ({
-        id: String(item.id),
-        title: item.name,
-        quantity: item.quantity,
-        currency_id: 'BRL',
-        unit_price: parseFloat(Number(item.price).toFixed(2)),
-      }));
-
-      const response = await axios.post(
-        'http://localhost:3333/api/payment/preference-cart',
-        {
-          items: mpItems,
-          total: totalPrice,
-          buyer: { name, email, phone, cep, street, number: houseNumber, neighborhood, city, state },
-          cartItems: items, // para gravar no banco
-        },
-        token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-      );
-
-      const url = response.data.sandbox_init_point || response.data.init_point;
-      if (url) {
-        clearCart(); // limpa o carrinho após redirecionar
-        window.location.href = url;
-      } else {
-        setError('Não foi possível gerar o link de pagamento.');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.erro || 'Erro ao processar. Verifique os dados e tente novamente.');
-    } finally {
-      setSubmitting(false);
-    }
+      const res = await axios.post('http://localhost:3333/api/payment/preference-cart', {
+        items: items.map(i => ({ id: String(i.id), title: i.name, quantity: i.quantity, currency_id: 'BRL', unit_price: parseFloat(Number(i.price).toFixed(2)) })),
+        total: totalPrice,
+        buyer: { name, email, phone, cep, street, number: num, neighborhood, city, state },
+        cartItems: items,
+      }, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      const url = res.data.sandbox_init_point || res.data.init_point;
+      if (url) { clearCart(); window.location.href = url; }
+      else setError('Não foi possível gerar o link de pagamento.');
+    } catch (err: any) { setError(err.response?.data?.erro || 'Erro ao processar. Tente novamente.'); }
+    finally { setSubmitting(false); }
   };
 
+  const SField = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</label>
+      {children}
+    </div>
+  );
+
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '11px 16px', background: '#F9F5FF', border: '1.5px solid var(--mist)', borderRadius: 'var(--radius-md)', fontSize: 14, color: 'var(--ink)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.2s' };
+
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4 md:px-6">
-
-      {/* Breadcrumb + steps */}
-      <div className="flex items-center gap-2 text-sm text-zinc-500 mb-8">
-        <Link href="/products" className="hover:text-indigo-400 transition-colors">Loja</Link>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
+        <Link href="/products" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Loja</Link>
         <span>/</span>
-        <button onClick={onBack} className="hover:text-indigo-400 transition-colors">Carrinho</button>
-        <span>/</span>
-        <span className="text-zinc-300">Dados de Entrega</span>
+        <button onClick={onBack} style={{ color: 'var(--violet)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: 0 }}>Carrinho</button>
+        <span>/</span><span>Entrega</span>
       </div>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 700, color: 'var(--royal)', marginBottom: 6 }}>Dados de Entrega</h1>
+      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>Preencha seus dados para finalizar o pedido.</p>
 
-      <h1 className="text-3xl font-black text-white mb-1" style={{ fontFamily: "'Syne', sans-serif" }}>
-        Dados de Entrega
-      </h1>
-      <p className="text-zinc-500 text-sm mb-8">Preencha seus dados para finalizar o pedido.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {error && <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', fontSize: 13, color: '#DC2626', display: 'flex', gap: 8 }}><span>⚠</span><span>{error}</span></div>}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Formulário */}
-        <div className="lg:col-span-2 space-y-6">
-          {error && (
-            <div className="p-4 bg-rose-950/50 border border-rose-800/60 rounded-xl text-rose-400 text-sm flex gap-3">
-              <span>⚠</span><span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Dados pessoais */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-5">👤 Dados Pessoais</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Input label="Nome completo" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required />
-                </div>
+          {/* Dados pessoais */}
+          <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>👤 Dados Pessoais</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <Input label="Nome completo" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <Input label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input label="Telefone" type="tel" placeholder="(44) 99999-9999" value={phone} onChange={e => setPhone(e.target.value)} required />
               </div>
             </div>
+          </div>
 
-            {/* Endereço */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-5">📦 Endereço de Entrega</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
-                  <Input
-                    label={loadingCep ? 'Buscando...' : 'CEP'}
-                    placeholder="00000-000"
-                    value={cep}
-                    onChange={e => setCep(e.target.value)}
-                    onBlur={handleCepBlur}
-                    maxLength={9}
-                    required
-                  />
-                  {loadingCep && (
-                    <div className="absolute right-3 top-9">
-                      <svg className="animate-spin w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                      </svg>
-                    </div>
-                  )}
-                  <p className="text-zinc-600 text-xs mt-1">Saia do campo para auto-preencher</p>
-                </div>
-                <div className="md:col-span-2">
-                  <Input label="Rua" placeholder="Nome da rua" value={street} onChange={e => setStreet(e.target.value)} required />
-                </div>
-                <Input label="Número" placeholder="123" value={houseNumber} onChange={e => setHouseNumber(e.target.value)} required />
-                <Input label="Bairro" placeholder="Seu bairro" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} required />
-                <Input label="Cidade" placeholder="Sua cidade" value={city} onChange={e => setCity(e.target.value)} required />
-                <div className="md:col-span-3">
-                  <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest block mb-1.5">Estado</label>
-                  <select
-                    value={state} onChange={e => setState(e.target.value)} required
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                  >
-                    <option value="">Selecione o estado</option>
-                    {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
-                      <option key={uf} value={uf}>{uf}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Endereço */}
+          <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>📦 Endereço de Entrega</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginBottom: 12 }}>
+              <div style={{ position: 'relative' }}>
+                <Input label={loadingCep ? 'Buscando...' : 'CEP'} placeholder="00000-000" value={cep} onChange={e => setCep(e.target.value)} onBlur={handleCepBlur} maxLength={9} required />
               </div>
+              <Input label="Rua" placeholder="Nome da rua" value={street} onChange={e => setStreet(e.target.value)} required />
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 12, marginBottom: 12 }}>
+              <Input label="Número" placeholder="123" value={num} onChange={e => setNum(e.target.value)} required />
+              <Input label="Bairro" placeholder="Seu bairro" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} required />
+              <Input label="Cidade" placeholder="Cidade" value={city} onChange={e => setCity(e.target.value)} required />
+            </div>
+            <SField label="Estado">
+              <select value={state} onChange={e => setState(e.target.value)} required style={{ ...inputStyle }}>
+                <option value="">Selecione</option>
+                {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => <option key={uf}>{uf}</option>)}
+              </select>
+            </SField>
+          </div>
 
-            <div className="flex gap-4">
-              <Button type="button" variant="outline" size="lg" className="flex-shrink-0 w-auto px-6" onClick={onBack}>
-                ← Voltar
-              </Button>
-              <Button type="submit" variant="primary" size="lg" disabled={submitting}>
-                {submitting ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                    Redirecionando para o Mercado Pago...
-                  </span>
-                ) : '🔒 Finalizar e Pagar'}
-              </Button>
-            </div>
-            <p className="text-zinc-600 text-xs text-center">Pagamento seguro via Mercado Pago</p>
-          </form>
-        </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Button type="button" variant="ghost" size="lg" style={{ width: 'auto', padding: '13px 24px', flexShrink: 0 }} onClick={onBack}>← Voltar</Button>
+            <Button type="submit" variant="primary" size="lg" style={{ flex: 1 }} disabled={submitting}>
+              {submitting ? 'Redirecionando...' : '🔒 Finalizar e Pagar'}
+            </Button>
+          </div>
+        </form>
 
-        {/* Resumo do carrinho */}
-        <div className="lg:col-span-1">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sticky top-24">
-            <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">🛒 Resumo</h2>
-            <div className="space-y-3 mb-4">
-              {items.map(item => (
-                <div key={item.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
-                    {item.image_url ? (
-                      <img src={`http://localhost:3333/${item.image_url}`} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-600 text-sm">📦</div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-semibold line-clamp-1">{item.name}</p>
-                    <p className="text-zinc-500 text-xs">×{item.quantity}</p>
-                  </div>
-                  <p className="text-zinc-300 text-xs flex-shrink-0">
-                    R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-zinc-800 pt-4">
-              <div className="flex justify-between">
-                <span className="font-bold text-white text-sm">Total</span>
-                <span className="font-black text-indigo-400 text-lg" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  R$ {totalPrice.toFixed(2).replace('.', ',')}
-                </span>
+        {/* Resumo */}
+        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Resumo</p>
+          {items.map(item => (
+            <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
+                {item.image_url ? <img src={`http://localhost:3333/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>}
               </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--royal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
+                <p style={{ fontSize: 11, color: 'var(--muted)' }}>×{item.quantity}</p>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--royal)', flexShrink: 0 }}>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
             </div>
-
-            <div className="mt-5 p-3 bg-zinc-800/60 rounded-xl text-center">
-              <p className="text-zinc-600 text-xs">⚡ Pix &nbsp;·&nbsp; 📄 Boleto &nbsp;·&nbsp; 💳 Cartão</p>
-              <p className="text-zinc-700 text-xs mt-1">🔒 Mercado Pago</p>
+          ))}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 600, color: 'var(--royal)' }}>Total</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--royal)' }}>R$ {totalPrice.toFixed(2).replace('.', ',')}</span>
             </div>
           </div>
         </div>
@@ -386,26 +221,11 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
   );
 }
 
-// ── Página principal — gerencia etapas ────────────────────────────────────────
 function CartPageContent() {
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
-
-  return step === 'cart'
-    ? <CartItems onNext={() => setStep('checkout')} />
-    : <CartCheckout onBack={() => setStep('cart')} />;
+  return step === 'cart' ? <CartItems onNext={() => setStep('checkout')} /> : <CartCheckout onBack={() => setStep('cart')} />;
 }
 
 export default function CartPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[calc(100vh-128px)]">
-        <svg className="animate-spin w-8 h-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-        </svg>
-      </div>
-    }>
-      <CartPageContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>}><CartPageContent /></Suspense>;
 }

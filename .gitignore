@@ -1,4 +1,25 @@
-node_modules
+# Dependências
+node_modules/
+frontend/node_modules/
+
+# Variáveis de ambiente — NUNCA commitar o .env real
 .env
-/uploads
-frontend/.next
+.env.local
+.env.production
+
+# Build do Next.js
+frontend/.next/
+
+# Uploads de imagens (arquivos locais)
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# TypeScript compilado
+dist/

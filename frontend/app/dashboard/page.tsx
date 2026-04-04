@@ -1,159 +1,162 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { Button } from '../../components/ui/Button';
 
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  accent: string;
-  icon: string;
-}
-
-function StatCard({ label, value, accent, icon }: StatCardProps) {
+function StatCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent: string }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden">
-      <div className={`absolute top-0 left-0 w-1 h-full ${accent} rounded-l-2xl`} />
-      <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-2">{label}</p>
-      <div className="flex items-end justify-between">
-        <p className="text-3xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>{value}</p>
-        <span className="text-3xl opacity-20">{icon}</span>
+    <div style={{
+      background: 'var(--white)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '24px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      borderLeft: `4px solid ${accent}`,
+    }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: 12,
+        background: `${accent}18`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 22, flexShrink: 0,
+      }}>{icon}</div>
+      <div>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 4 }}>{label}</p>
+        <p style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--royal)', lineHeight: 1 }}>{value}</p>
       </div>
     </div>
   );
 }
 
+function QuickAction({ href, icon, title, desc, accent }: { href: string; icon: string; title: string; desc: string; accent: string; badge?: number }) {
+  return (
+    <Link href={href} style={{ textDecoration: 'none' }}>
+      <div style={{
+        background: 'var(--white)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '20px',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+      }}
+        onMouseEnter={e => {
+          const el = e.currentTarget;
+          el.style.borderColor = accent;
+          el.style.boxShadow = `0 8px 24px ${accent}20`;
+          el.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget;
+          el.style.borderColor = 'var(--border)';
+          el.style.boxShadow = 'none';
+          el.style.transform = 'translateY(0)';
+        }}
+      >
+        <div style={{ fontSize: 24, marginBottom: 10 }}>{icon}</div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--royal)', marginBottom: 4 }}>{title}</p>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>{desc}</p>
+      </div>
+    </Link>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [productCount, setProductCount] = useState(0);
-  const [sellerOrderCount, setSellerOrderCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('@Ecommerce:token');
     if (!token) { router.push('/login'); return; }
 
-    const fetchData = async () => {
-      try {
-        const headers = { Authorization: `Bearer ${token}` };
-        const [productsRes, ordersRes] = await Promise.allSettled([
-          axios.get('http://localhost:3333/api/products/seller', { headers }),
-          axios.get('http://localhost:3333/api/orders/seller', { headers }),
-        ]);
-
-        if (productsRes.status === 'fulfilled') {
-          const products = Array.isArray(productsRes.value.data) ? productsRes.value.data : [];
-          setProductCount(products.length);
-        }
-        if (ordersRes.status === 'fulfilled') {
-          const orders = Array.isArray(ordersRes.value.data) ? ordersRes.value.data : [];
-          setSellerOrderCount(orders.length);
-        }
-      } catch { /* silencia */ } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+    Promise.allSettled([
+      axios.get('http://localhost:3333/api/products/seller', { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get('http://localhost:3333/api/orders/seller', { headers: { Authorization: `Bearer ${token}` } }),
+    ]).then(([p, o]) => {
+      if (p.status === 'fulfilled') setProductCount(Array.isArray(p.value.data) ? p.value.data.length : 0);
+      if (o.status === 'fulfilled') setOrderCount(Array.isArray(o.value.data) ? o.value.data.length : 0);
+    }).finally(() => setLoading(false));
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('@Ecommerce:token');
-    router.push('/login');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-128px)]">
-        <div className="flex flex-col items-center gap-3">
-          <svg className="animate-spin w-8 h-8 text-indigo-500" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <span className="text-zinc-500 text-sm">Carregando painel...</span>
-        </div>
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 40, height: 40, border: '3px solid var(--mist)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Carregando painel...</p>
       </div>
-    );
-  }
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4 md:px-6">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px' }}>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <p className="text-zinc-500 text-sm mb-1">Bem-vindo de volta 👋</p>
-          <h1 className="text-4xl font-black text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Painel do Vendedor
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 4 }}>Painel do Vendedor</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, fontWeight: 700, color: 'var(--royal)' }}>
+            Bem-vindo de volta 👋
           </h1>
         </div>
-        <Button variant="outline" size="sm" className="w-auto" onClick={handleLogout}>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
-          </svg>
+        <Button
+          variant="outline"
+          size="sm"
+          style={{ width: 'auto' }}
+          onClick={() => { localStorage.removeItem('@Ecommerce:token'); router.push('/login'); }}
+        >
           Sair
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-        <StatCard label="Total de Produtos" value={productCount} accent="bg-indigo-500" icon="📦" />
-        <StatCard label="Pedidos Recebidos" value={sellerOrderCount} accent="bg-emerald-500" icon="🛒" />
-        <StatCard label="Vendas do mês" value="R$ 0,00" accent="bg-violet-500" icon="💰" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 40 }}>
+        <StatCard label="Produtos cadastrados" value={productCount} icon="📦" accent="#7C3AED" />
+        <StatCard label="Pedidos recebidos" value={orderCount} icon="🛒" accent="#059669" />
+        <StatCard label="Vendas do mês" value="R$ 0,00" icon="💰" accent="#D97706" />
       </div>
 
       {/* Ações rápidas */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
-        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-5">Ações Rápidas</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/products/create" className="block">
-            <div className="border border-zinc-700 hover:border-indigo-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-indigo-950/30">
-              <div className="text-2xl mb-3">➕</div>
-              <p className="font-semibold text-white text-sm">Novo Produto</p>
-              <p className="text-zinc-500 text-xs mt-1">Publicar um novo anúncio</p>
-            </div>
-          </Link>
-          <Link href="/products/seller-products" className="block">
-            <div className="border border-zinc-700 hover:border-emerald-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-emerald-950/30">
-              <div className="text-2xl mb-3">📦</div>
-              <p className="font-semibold text-white text-sm">Meus Produtos</p>
-              <p className="text-zinc-500 text-xs mt-1">Gerenciar estoque e preços</p>
-            </div>
-          </Link>
-          <Link href="/orders" className="block">
-            <div className="border border-zinc-700 hover:border-amber-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-amber-950/30 relative">
-              <div className="text-2xl mb-3">🧾</div>
-              <p className="font-semibold text-white text-sm">Pedidos</p>
-              <p className="text-zinc-500 text-xs mt-1">Compras e vendas recebidas</p>
-              {sellerOrderCount > 0 && (
-                <span className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                  {sellerOrderCount}
-                </span>
-              )}
-            </div>
-          </Link>
-          <Link href="/products" className="block">
-            <div className="border border-zinc-700 hover:border-violet-500 rounded-xl p-5 transition-all duration-200 cursor-pointer hover:bg-violet-950/30">
-              <div className="text-2xl mb-3">🏪</div>
-              <p className="font-semibold text-white text-sm">Ver Loja</p>
-              <p className="text-zinc-500 text-xs mt-1">Como os clientes te veem</p>
-            </div>
-          </Link>
+      <div style={{
+        background: 'var(--white)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '28px',
+        marginBottom: 24,
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>
+          Ações Rápidas
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+          <QuickAction href="/products/create" icon="➕" title="Novo Produto" desc="Publicar anúncio" accent="#7C3AED" />
+          <QuickAction href="/products/seller-products" icon="📦" title="Meus Produtos" desc="Gerenciar estoque" accent="#059669" />
+          <QuickAction href="/orders" icon="🧾" title="Pedidos" desc="Compras e vendas" accent="#D97706" />
+          <QuickAction href="/products" icon="🏪" title="Ver Loja" desc="Como os clientes veem" accent="#7C3AED" />
         </div>
       </div>
 
+      {/* CTA vazio */}
       {productCount === 0 && (
-        <div className="border border-dashed border-zinc-700 rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-4">🚀</p>
-          <h3 className="text-lg font-bold text-white mb-2">Sua loja está vazia</h3>
-          <p className="text-zinc-500 text-sm mb-6">Crie seu primeiro produto e comece a vender hoje!</p>
-          <Link href="/products/create">
-            <Button variant="primary" className="w-auto px-8 mx-auto">Criar primeiro produto</Button>
+        <div style={{
+          border: '2px dashed var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '48px 24px',
+          textAlign: 'center',
+        }}>
+          <p style={{ fontSize: 40, marginBottom: 12 }}>🚀</p>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--royal)', marginBottom: 8 }}>Sua loja está esperando!</h3>
+          <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>Crie seu primeiro produto e comece a vender hoje mesmo.</p>
+          <Link href="/products/create" style={{ display: 'inline-block' }}>
+            <Button variant="primary" style={{ width: 'auto', padding: '12px 32px' }}>Criar primeiro produto →</Button>
           </Link>
         </div>
       )}
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

@@ -1,11 +1,10 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
-import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,95 +18,117 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post('http://127.0.0.1:3333/api/login', { email, password });
-      const token = response.data.token;
-      if (token) {
-        localStorage.setItem('@Ecommerce:token', token);
+      const res = await axios.post('http://127.0.0.1:3333/api/login', { email, password });
+      if (res.data.token) {
+        localStorage.setItem('@Ecommerce:token', res.data.token);
         router.push('/dashboard');
-      } else {
-        setError('Falha na autenticação. Tente novamente.');
       }
     } catch (err: any) {
-      if (err.code === 'ERR_NETWORK') {
-        setError('Servidor offline. Verifique se o backend está rodando na porta 3333.');
-      } else {
-        setError(err.response?.data?.erro || 'E-mail ou senha inválidos.');
-      }
-    } finally {
-      setLoading(false);
-    }
+      if (err.code === 'ERR_NETWORK') setError('Servidor offline. Verifique se o backend está rodando.');
+      else setError(err.response?.data?.erro || 'E-mail ou senha inválidos.');
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-[calc(100vh-128px)] flex items-center justify-center px-4 py-12">
-      {/* Background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-600/10 rounded-full blur-3xl" />
-      </div>
+    <div style={{
+      minHeight: 'calc(100vh - 136px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      background: 'linear-gradient(160deg, var(--cream) 0%, var(--mist) 100%)',
+    }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
 
-      <div className="w-full max-w-md relative">
-        {/* Logo mark */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-indigo-600 rounded-2xl mb-4 shadow-lg shadow-indigo-900/50">
-            <span className="text-white font-black text-2xl" style={{ fontFamily: "'Syne', sans-serif" }}>F</span>
+        {/* Card */}
+        <div style={{
+          background: 'var(--white)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '48px 40px',
+          boxShadow: '0 24px 80px rgba(45,20,87,0.12)',
+        }}>
+          {/* Logo */}
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <div style={{
+              width: 60,
+              height: 60,
+              background: 'linear-gradient(135deg, var(--violet), var(--lavender))',
+              borderRadius: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '0 8px 24px rgba(124,58,237,0.3)',
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: '#fff' }}>F</span>
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: 'var(--royal)', marginBottom: 6 }}>
+              Bem-vindo de volta
+            </h1>
+            <p style={{ fontSize: 14, color: 'var(--muted)' }}>Entre com suas credenciais para continuar</p>
           </div>
-          <h1 className="text-3xl font-extrabold text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Bem-vindo de volta
-          </h1>
-          <p className="text-zinc-500 mt-2 text-sm">Entre na sua conta para gerenciar sua loja</p>
-        </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
+          {/* Erro */}
           {error && (
-            <div className="mb-6 p-4 bg-rose-950/50 border border-rose-800/60 rounded-xl text-rose-400 text-sm flex items-start gap-3">
-              <span className="text-rose-500 mt-0.5">⚠</span>
+            <div style={{
+              marginBottom: 20,
+              padding: '12px 16px',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 13,
+              color: '#DC2626',
+              display: 'flex',
+              gap: 8,
+              alignItems: 'flex-start',
+            }}>
+              <span style={{ flexShrink: 0 }}>⚠</span>
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <Input
-              label="E-mail"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
-              label="Senha"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Input label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+            <Input label="Senha" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
 
-            <div className="pt-2">
+            <div style={{ marginTop: 4 }}>
               <Button type="submit" variant="primary" size="lg" disabled={loading}>
                 {loading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <svg style={{ animation: 'spin 1s linear infinite', width: 16, height: 16 }} viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3" />
+                      <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                     </svg>
                     Entrando...
                   </span>
-                ) : 'Acessar Painel'}
+                ) : 'Entrar no painel →'}
               </Button>
             </div>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-zinc-800 text-center">
-            <p className="text-zinc-500 text-sm">
-              Não tem uma conta?{' '}
-              <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
-                Cadastre-se grátis
-              </Link>
-            </p>
+          <div style={{
+            marginTop: 28,
+            paddingTop: 24,
+            borderTop: '1px solid var(--mist)',
+            textAlign: 'center',
+            fontSize: 13,
+            color: 'var(--muted)',
+          }}>
+            Não tem uma conta?{' '}
+            <Link href="/register" style={{ color: 'var(--violet)', fontWeight: 600, textDecoration: 'none' }}>
+              Cadastre-se grátis
+            </Link>
           </div>
         </div>
+
+        {/* Rodapé do card */}
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#C4B5D4', marginTop: 20 }}>
+          Pagamentos seguros via Mercado Pago · SSL 256-bit
+        </p>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

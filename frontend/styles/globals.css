@@ -1,36 +1,63 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand-primary: #6366f1;
+:root {
+  --royal:    #1A0A2E;
+  --plum:     #2D1457;
+  --grape:    #4C1D95;
+  --violet:   #7C3AED;
+  --lavender: #A855F7;
+  --lilac:    #C4A0FF;
+  --mist:     #EDE8F5;
+  --cream:    #F7F4F0;
+  --white:    #FFFFFF;
+  --ink:      #1A0A2E;
+  --muted:    #8B6BA8;
+  --border:   #E8E0F0;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-pill: 999px;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; font-size: 16px; }
 
 body {
-  background-color: #09090b;
-  color: #f4f4f5;
+  background-color: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
-/* Scrollbar customizada */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--mist); }
+::-webkit-scrollbar-thumb { background: var(--lilac); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--violet); }
+
+::selection { background: var(--lilac); color: var(--royal); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-::-webkit-scrollbar-track {
-  background: #18181b;
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
 }
-::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+
+.animate-fade-up { animation: fadeUp 0.4s ease forwards; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--mist) 25%, var(--border) 50%, var(--mist) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
 }

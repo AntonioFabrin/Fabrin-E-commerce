@@ -1,11 +1,11 @@
 import React from 'react';
 import '../styles/globals.css';
 import { CartProvider } from '../contexts/CartContext';
-import CartHeaderIcon from '../components/CartHeaderIcon';
+import Header from '../components/Header';
 
 export const metadata = {
-  title: 'Fabrin Marketplace',
-  description: 'A melhor loja de periféricos e tecnologia',
+  title: 'Fabrin Market — Marketplace Premium',
+  description: 'Produtos selecionados com qualidade garantida.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,45 +15,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-zinc-950 min-h-screen flex flex-col antialiased text-zinc-100" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <body>
         <CartProvider>
+          <Header />
 
-          <header className="border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">F</div>
-                <span className="font-bold text-white tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  Fabrin<span className="text-indigo-400">Market</span>
-                </span>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest hidden md:block">
-                  Painel do Vendedor
-                </span>
-                {/* Ícone do carrinho com contador */}
-                <CartHeaderIcon />
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1">
+          <main style={{ minHeight: 'calc(100vh - 64px - 72px)' }}>
             {children}
           </main>
 
-          <footer className="border-t border-zinc-800/60 py-6 mt-auto">
-            <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-2">
-              <span className="text-zinc-600 text-sm">
-                © 2026 <span className="text-zinc-400 font-semibold">Fabrin Marketplace</span>
+          <footer style={{
+            background: 'var(--royal)',
+            borderTop: '1px solid rgba(196,160,255,0.1)',
+          }}>
+            <div style={{
+              maxWidth: 1200,
+              margin: '0 auto',
+              padding: '20px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#9D7EC9' }}>
+                Fabrin<span style={{ color: 'var(--lavender)' }}>Market</span>
               </span>
-              <span className="text-zinc-700 text-xs">Desenvolvido por Antonio Dev</span>
+              <span style={{ color: '#4A3566', fontSize: 12 }}>
+                © 2026 · Desenvolvido por Antonio Dev
+              </span>
             </div>
           </footer>
-
         </CartProvider>
       </body>
     </html>
