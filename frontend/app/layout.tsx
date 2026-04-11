@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/globals.css';
 import { CartProvider } from '../contexts/CartContext';
+import { ToastProvider } from '../components/ui/Toast';
 import Header from '../components/Header';
 
 export const metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <CartProvider>
+          <ToastProvider>
           <Header />
 
           <main style={{ minHeight: 'calc(100vh - 64px - 72px)' }}>
@@ -48,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </span>
             </div>
           </footer>
+          </ToastProvider>
         </CartProvider>
       </body>
     </html>

@@ -1,14 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
-
-function decodeToken(token: string): { id: number; role: string } | null {
-  try { return JSON.parse(atob(token.split('.')[1])); } catch { return null; }
-}
+import { useRequireAuth } from '../../../hooks/useAuth';
+import api, { API, extractErrorMessage } from '../../../lib/api';
 
 const Spin = () => (
   <>
@@ -18,41 +15,45 @@ const Spin = () => (
 );
 
 export default function EditProductPage() {
-  const router = useRouter();
-  const params = useParams();
+  const router   = useRouter();
+  const params   = useParams();
   const productId = params?.id as string;
 
-  const [name, setName] = useState('');
+  // useRequireAuth redireciona se não logado e expõe o user decodificado
+  const { user, loading: authLoading } = useRequireAuth();
+
+  const [name, setName]               = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [price, setPrice]             = useState('');
+  const [stock, setStock]             = useState('');
+  const [imageFile, setImageFile]     = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [forbidden, setForbidden] = useState(false);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+  const [forbidden, setForbidden]     = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) { router.push('/login'); return; }
-    const user = decodeToken(token);
-    if (!user) { router.push('/login'); return; }
+    if (authLoading || !user) return;
 
-    axios.get(`http://localhost:3333/api/products/${productId}`)
+    api.get(`/api/products/${productId}`)
       .then(r => {
         const p = r.data;
-        if (user.role !== 'admin' && p.seller_id !== user.id) { setForbidden(true); return; }
+        // Nota: decodificação do JWT é apenas para UI — validação real ocorre no backend
+        if (user.role !== 'admin' && p.seller_id !== user.id) {
+          setForbidden(true);
+          return;
+        }
         setName(p.name ?? '');
         setDescription(p.description ?? '');
         setPrice(String(p.price ?? ''));
         setStock(String(p.stock ?? ''));
-        if (p.image_url) setCurrentImage(`http://localhost:3333/${p.image_url}`);
+        if (p.image_url) setCurrentImage(`${API}/${p.image_url}`);
       })
       .catch(() => setError('Produto não encontrado.'))
       .finally(() => setLoading(false));
-  }, [productId, router]);
+  }, [productId, authLoading, user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -64,20 +65,17 @@ export default function EditProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true); setError('');
-    const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) { router.push('/login'); return; }
     try {
-      await axios.put(`http://localhost:3333/api/products/${productId}`,
-        { name, description, price: Number(price), stock: Number(stock) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/api/products/${productId}`, {
+        name, description, price: Number(price), stock: Number(stock),
+      });
       router.push('/products');
-    } catch (err: any) {
-      setError(err.response?.data?.erro || 'Erro ao atualizar produto.');
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao atualizar produto.'));
     } finally { setSaving(false); }
   };
 
-  if (loading) return (
+  if (authLoading || loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 16 }}>
       <Spin /><p style={{ color: 'var(--muted)', fontSize: 14 }}>Carregando produto...</p>
     </div>
@@ -95,7 +93,6 @@ export default function EditProductPage() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
 
-      {/* Breadcrumb */}
       <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
         <Link href="/dashboard" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Dashboard</Link>
         <span>/</span>
@@ -130,7 +127,6 @@ export default function EditProductPage() {
             <Input label="Estoque" type="number" value={stock} onChange={e => setStock(e.target.value)} required />
           </div>
 
-          {/* Imagem */}
           <div>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block', marginBottom: 10 }}>Imagem do Produto</label>
             {(imagePreview || currentImage) && (
@@ -144,7 +140,7 @@ export default function EditProductPage() {
             >
               <span>📷</span>
               <span>{imageFile ? imageFile.name : 'Clique para trocar a imagem (opcional)'}</span>
-              <input type="file" accept="image/png,image/jpeg" onChange={handleFileChange} style={{ display: 'none' }} />
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} style={{ display: 'none' }} />
             </label>
             <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Deixe em branco para manter a imagem atual.</p>
           </div>

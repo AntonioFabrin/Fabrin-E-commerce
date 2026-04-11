@@ -3,12 +3,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        // O que você digita no frontend
-        source: '/api/:path*', 
-        // Para onde ele vai no backend (sem o /api no meio)
-        destination: 'http://localhost:3333/:path*', 
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/:path*`,
       },
-    ]
+    ];
   },
 };
 

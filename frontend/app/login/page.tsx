@@ -1,10 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import api, { extractErrorMessage } from '../../lib/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,14 +18,28 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://127.0.0.1:3333/api/login', { email, password });
+      const res = await api.post('/api/login', { email, password });
       if (res.data.token) {
         localStorage.setItem('@Ecommerce:token', res.data.token);
-        router.push('/dashboard');
+        // Salva o nome para o useAuth poder exibir sem nova request
+        if (res.data.user?.name) {
+          localStorage.setItem('@Ecommerce:name', res.data.user.name);
+        }
+        // Cookies lidos pelo middleware.ts no servidor
+        document.cookie = '@Ecommerce:logged=1; path=/';
+        // Salva o role para o middleware poder bloquear rotas por role
+        const role = res.data.user?.role ||
+          JSON.parse(atob(res.data.token.split('.')[1]))?.role || 'customer';
+        document.cookie = `@Ecommerce:role=${role}; path=/`;
+        // Redireciona por role
+        if (role === 'customer') {
+          router.push('/account');
+        } else {
+          router.push('/dashboard');
+        }
       }
-    } catch (err: any) {
-      if (err.code === 'ERR_NETWORK') setError('Servidor offline. Verifique se o backend está rodando.');
-      else setError(err.response?.data?.erro || 'E-mail ou senha inválidos.');
+    } catch (err) {
+      setError(extractErrorMessage(err, 'E-mail ou senha inválidos.'));
     } finally { setLoading(false); }
   };
 

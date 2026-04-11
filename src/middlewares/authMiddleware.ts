@@ -11,7 +11,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const [, token] = authHeader.split(' '); // Separa "Bearer" de "TOKEN"
 
         try {
-        const secret = process.env.JWT_SECRET || 'XT_WS_%*924=23=lufa';
+        const secret = process.env.JWT_SECRET;
+        if (!secret) return res.status(500).json({ erro: 'Configuração interna inválida.' });
             const decoded = jwt.verify(token, secret);
         (req as any).user = decoded; // Coloca os dados do usuário na requisição
     return next();

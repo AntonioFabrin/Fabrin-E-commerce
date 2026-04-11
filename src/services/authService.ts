@@ -3,36 +3,32 @@ import userRepository from '../repositories/userRepository';
 
 const authService = {
     registerUser: async (userData: any) => {
-        console.log("3. Chegou no Service. Dados recebidos:", userData);
         try {
             const usuarioExistente = await userRepository.findByEmail(userData.email);
             if (usuarioExistente) {
                 throw new Error('Este e-mail já está em uso!');
             }
 
-            const saltRounds = 10;
-            
-            console.log("4. Valor que vai para o bcrypt:", userData.password);
-
             if (!userData.password) {
-                throw new Error("A senha está chegando vazia no Service!");
+                throw new Error('A senha não pode ser vazia.');
             }
 
-            const hashPassword = await bcrypt.hash(userData.password, saltRounds);
+            const hashPassword = await bcrypt.hash(userData.password, 10);
+
+            // Aceita 'customer' ou 'seller' — qualquer outro valor cai para 'customer'
+            const role = userData.role === 'seller' ? 'seller' : 'customer';
 
             const novoUserId = await userRepository.create({
                 name: userData.name,
                 email: userData.email,
                 password: hashPassword,
-                role: 'customer'
+                role,
             });
 
             return novoUserId;
         } catch (error) {
             throw error;
         }
-
-
     },
 
     login: async (email:string, password: string) => {
@@ -81,7 +77,6 @@ const authService = {
             const users = await userRepository.findAll();
             return users;
         } catch (error: any) { 
-            console.error("❌ ERRO REAL NO BANCO:", error.message);
             throw new Error(`Erro no banco de dados: ${error.message}`);
         }
     },

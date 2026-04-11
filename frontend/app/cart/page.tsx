@@ -1,11 +1,12 @@
 'use client';
 import React, { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import axios from 'axios'; // mantido apenas para o ViaCEP (API externa)
 import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import api, { API, extractErrorMessage } from '../../lib/api';
 
 const Spin = () => (
   <>
@@ -23,7 +24,9 @@ function CartItems({ onNext }: { onNext: () => void }) {
       <p style={{ fontSize: 56, marginBottom: 16 }}>🛒</p>
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--royal)', marginBottom: 10 }}>Carrinho vazio</h2>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 28 }}>Adicione produtos da loja para continuar.</p>
-      <Link href="/products" style={{ display: 'inline-block' }}><Button variant="primary" style={{ width: 'auto', padding: '12px 32px' }}>Explorar loja →</Button></Link>
+      <Link href="/products" style={{ display: 'inline-block' }}>
+        <Button variant="primary" style={{ width: 'auto', padding: '12px 32px' }}>Explorar loja →</Button>
+      </Link>
     </div>
   );
 
@@ -46,7 +49,9 @@ function CartItems({ onNext }: { onNext: () => void }) {
           {items.map(item => (
             <div key={item.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)', background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
-                {item.image_url ? <img src={`http://localhost:3333/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: 0.4 }}>📦</div>}
+                {item.image_url
+                  ? <img src={`${API}/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: 0.4 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 600, color: 'var(--royal)', fontSize: 14, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
@@ -95,37 +100,57 @@ function CartItems({ onNext }: { onNext: () => void }) {
 
 function CartCheckout({ onBack }: { onBack: () => void }) {
   const { items, totalPrice, clearCart } = useCart();
-  const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [phone, setPhone] = useState('');
-  const [cep, setCep] = useState(''); const [street, setStreet] = useState(''); const [num, setNum] = useState('');
-  const [neighborhood, setNeighborhood] = useState(''); const [city, setCity] = useState(''); const [state, setState] = useState('');
-  const [loadingCep, setLoadingCep] = useState(false); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState('');
+  const [name, setName]               = useState('');
+  const [email, setEmail]             = useState('');
+  const [phone, setPhone]             = useState('');
+  const [cep, setCep]                 = useState('');
+  const [street, setStreet]           = useState('');
+  const [num, setNum]                 = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity]               = useState('');
+  const [state, setState]             = useState('');
+  const [loadingCep, setLoadingCep]   = useState(false);
+  const [submitting, setSubmitting]   = useState(false);
+  const [error, setError]             = useState('');
 
   const handleCepBlur = async () => {
     const c = cep.replace(/\D/g, '');
     if (c.length !== 8) return;
     setLoadingCep(true);
     try {
+      // ViaCEP é uma API pública externa — usa axios direto (sem token)
       const r = await axios.get(`https://viacep.com.br/ws/${c}/json/`);
-      if (!r.data.erro) { setStreet(r.data.logradouro || ''); setNeighborhood(r.data.bairro || ''); setCity(r.data.localidade || ''); setState(r.data.uf || ''); }
+      if (!r.data.erro) {
+        setStreet(r.data.logradouro || '');
+        setNeighborhood(r.data.bairro || '');
+        setCity(r.data.localidade || '');
+        setState(r.data.uf || '');
+      }
     } catch { } finally { setLoadingCep(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true); setError('');
-    const token = localStorage.getItem('@Ecommerce:token');
     try {
-      const res = await axios.post('http://localhost:3333/api/payment/preference-cart', {
-        items: items.map(i => ({ id: String(i.id), title: i.name, quantity: i.quantity, currency_id: 'BRL', unit_price: parseFloat(Number(i.price).toFixed(2)) })),
+      const res = await api.post('/api/payment/preference-cart', {
+        items: items.map(i => ({
+          id: String(i.id),
+          title: i.name,
+          quantity: i.quantity,
+          currency_id: 'BRL',
+          unit_price: parseFloat(Number(i.price).toFixed(2)),
+        })),
         total: totalPrice,
         buyer: { name, email, phone, cep, street, number: num, neighborhood, city, state },
         cartItems: items,
-      }, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      });
       const url = res.data.sandbox_init_point || res.data.init_point;
       if (url) { clearCart(); window.location.href = url; }
       else setError('Não foi possível gerar o link de pagamento.');
-    } catch (err: any) { setError(err.response?.data?.erro || 'Erro ao processar. Tente novamente.'); }
-    finally { setSubmitting(false); }
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao processar. Tente novamente.'));
+    } finally { setSubmitting(false); }
   };
 
   const SField = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -135,7 +160,12 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
     </div>
   );
 
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '11px 16px', background: '#F9F5FF', border: '1.5px solid var(--mist)', borderRadius: 'var(--radius-md)', fontSize: 14, color: 'var(--ink)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.2s' };
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '11px 16px',
+    background: '#F9F5FF', border: '1.5px solid var(--mist)',
+    borderRadius: 'var(--radius-md)', fontSize: 14, color: 'var(--ink)',
+    outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.2s',
+  };
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
@@ -150,9 +180,12 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', fontSize: 13, color: '#DC2626', display: 'flex', gap: 8 }}><span>⚠</span><span>{error}</span></div>}
+          {error && (
+            <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', fontSize: 13, color: '#DC2626', display: 'flex', gap: 8 }}>
+              <span>⚠</span><span>{error}</span>
+            </div>
+          )}
 
-          {/* Dados pessoais */}
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>👤 Dados Pessoais</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -164,13 +197,10 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          {/* Endereço */}
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>📦 Endereço de Entrega</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginBottom: 12 }}>
-              <div style={{ position: 'relative' }}>
-                <Input label={loadingCep ? 'Buscando...' : 'CEP'} placeholder="00000-000" value={cep} onChange={e => setCep(e.target.value)} onBlur={handleCepBlur} maxLength={9} required />
-              </div>
+              <Input label={loadingCep ? 'Buscando...' : 'CEP'} placeholder="00000-000" value={cep} onChange={e => setCep(e.target.value)} onBlur={handleCepBlur} maxLength={9} required />
               <Input label="Rua" placeholder="Nome da rua" value={street} onChange={e => setStreet(e.target.value)} required />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 12, marginBottom: 12 }}>
@@ -179,7 +209,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
               <Input label="Cidade" placeholder="Cidade" value={city} onChange={e => setCity(e.target.value)} required />
             </div>
             <SField label="Estado">
-              <select value={state} onChange={e => setState(e.target.value)} required style={{ ...inputStyle }}>
+              <select value={state} onChange={e => setState(e.target.value)} required style={inputStyle}>
                 <option value="">Selecione</option>
                 {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => <option key={uf}>{uf}</option>)}
               </select>
@@ -194,13 +224,15 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
           </div>
         </form>
 
-        {/* Resumo */}
+        {/* Resumo lateral */}
         <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Resumo</p>
           {items.map(item => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
-                {item.image_url ? <img src={`http://localhost:3333/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>}
+                {item.image_url
+                  ? <img src={`${API}/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--royal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
@@ -223,9 +255,15 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
 
 function CartPageContent() {
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
-  return step === 'cart' ? <CartItems onNext={() => setStep('checkout')} /> : <CartCheckout onBack={() => setStep('cart')} />;
+  return step === 'cart'
+    ? <CartItems onNext={() => setStep('checkout')} />
+    : <CartCheckout onBack={() => setStep('cart')} />;
 }
 
 export default function CartPage() {
-  return <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>}><CartPageContent /></Suspense>;
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><Spin /></div>}>
+      <CartPageContent />
+    </Suspense>
+  );
 }

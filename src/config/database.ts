@@ -3,17 +3,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-
 const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "1234",
-    database: "ecommerce",
+    host:     process.env.DB_HOST     || 'localhost',
+    user:     process.env.DB_USER     || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME     || 'ecommerce',
     waitForConnections: true,
-    connectionLimit:10,
+    connectionLimit: 10,
     queueLimit: 0
 });
-
-console.log("Pool de conexões MySQL configurado!");
 
 export default pool;

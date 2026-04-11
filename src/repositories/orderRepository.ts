@@ -115,7 +115,7 @@ const orderRepository = {
     // ─── PEDIDOS RECEBIDOS DO VENDEDOR ───────────────────────────────────────────
     getSellerOrders: async (sellerId: number) => {
         const query = `
-            SELECT DISTINCT
+            SELECT
                 o.id,
                 o.total,
                 o.status,
@@ -139,7 +139,7 @@ const orderRepository = {
             JOIN products p     ON oi.product_id = p.id
             JOIN users u        ON o.user_id = u.id
             WHERE p.seller_id = ?
-            GROUP BY o.id
+            GROUP BY o.id, u.name, u.email
             ORDER BY o.created_at DESC
         `;
         const [rows] = await db.execute(query, [sellerId]);

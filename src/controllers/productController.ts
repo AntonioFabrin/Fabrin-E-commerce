@@ -4,8 +4,6 @@ import productService from '../services/productService';
 const productController = {
     create: async (req: Request, res: Response) => {
         try {
-            console.log("Recebendo dados para novo anúncio...");
-            
             const { name, description, price, stock, category_id } = req.body;
             const userData = (req as any).user;
 
@@ -48,8 +46,6 @@ const productController = {
             const limit = parseInt(req.query.limit as string) || 50;
             const offset = (page - 1) * limit;
 
-            console.log(`📄 Buscando Produtos - Página: ${page} | Limite: ${limit}...`);
-
             const result = await productService.getAllProducts(limit, offset);
             const totalPages = Math.ceil(result.total / limit);
 
@@ -74,7 +70,6 @@ const productController = {
             if (!userData) {
                 return res.status(401).json({ erro: "Não autenticado." });
             }
-            console.log(`📦 Buscando produtos do vendedor ID: ${userData.id}...`);
             const products = await productService.getProductsBySeller(userData.id);
             return res.status(200).json(products);
         } catch (error: any) {
@@ -85,7 +80,6 @@ const productController = {
     getById: async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id as string);
-            console.log(`🔍 Buscando detalhes do produto ID: ${id}...`);
             const product = await productService.getProductById(id);
             return res.status(200).json(product);
         } catch (error: any) {
@@ -115,7 +109,6 @@ const productController = {
                 });
             }
 
-            console.log(`✏️ Atualizando produto ID: ${id}...`);
             await productService.updateProduct(id, productData);
             return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
         } catch (error: any) {
@@ -140,7 +133,6 @@ const productController = {
                 });
             }
 
-            console.log(`🗑️ Deletando produto ID: ${id}...`);
             await productService.deleteProduct(id);
             return res.status(200).json({ mensagem: "Produto removido da loja com sucesso!" });
         } catch (error: any) {

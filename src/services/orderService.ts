@@ -55,8 +55,6 @@ const orderService = {
         const paymentId = mpData?.id;
         if (!paymentId) return;
 
-        console.log(`🔔 Webhook recebido — payment_id: ${paymentId}`);
-
         // Atualiza o status do pagamento pelo transaction_id
         await orderRepository.updatePaymentStatus(String(paymentId), 'approved');
 
@@ -64,7 +62,6 @@ const orderService = {
         const order = await orderRepository.findByTransactionId(String(paymentId));
         if (order) {
             await orderRepository.updateOrderStatus(order.id, 'paid');
-            console.log(`✅ Pedido ID ${order.id} marcado como pago.`);
         }
     },
 

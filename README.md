@@ -15,96 +15,96 @@
 
 ---
 
-## Demonstração
-
-> **Backend:** `http://localhost:3333`  
-> **Frontend:** `http://localhost:3000`
-
----
-
 ## Funcionalidades
 
 ### Autenticação & Usuários
 - Cadastro e login com JWT (8h de expiração)
 - Sistema de roles: `buyer`, `seller`, `admin`
-- Rotas protegidas por middleware de autenticação e autorização
+- Proteção de rotas no servidor via `middleware.ts` do Next.js (bloqueia antes de renderizar)
+- Hook `useRequireAuth` centraliza verificação de auth no client-side
 
 ### Produtos
-- CRUD completo de produtos com upload de imagem (Multer)
-- Vendedor só edita/exclui os próprios produtos
-- Admin pode gerenciar qualquer produto
+- CRUD completo com upload de imagem (Multer — validação de MIME type real, limite 5 MB)
+- Vendedor só edita/exclui os próprios produtos; admin gerencia tudo
 - Paginação na listagem pública
 
-### Carrinho de Compras
-- Carrinho global com Context API
-- Persiste no `localStorage` entre sessões
-- Suporte a múltiplos produtos e vendedores
-- Controle de quantidade respeitando estoque
+### Carrinho
+- Context API global, persiste no `localStorage` entre sessões
+- Suporte a múltiplos produtos e vendedores, controle de estoque
 
 ### Pagamentos — Mercado Pago
-- Integração via SDK oficial do Mercado Pago
+- Integração via SDK oficial v2
 - Suporte a Pix, boleto e cartão (crédito/débito)
-- Modo Sandbox completo (sem dinheiro real)
-- Preferência única para produto avulso ou carrinho inteiro
+- Modo Sandbox completo
 - Webhook para atualização automática de status do pedido
 
 ### Pedidos
-- Pedido gravado no banco ao iniciar o pagamento
-- Status: `pending` → `paid` (via webhook do MP)
-- Aba **Minhas Compras** para o comprador
-- Aba **Pedidos Recebidos** para o vendedor (com dados do comprador)
+- Pedido gravado no banco ao iniciar pagamento
+- Status: `pending` → `paid` via webhook
+- Aba Minhas Compras (comprador) e Pedidos Recebidos (vendedor)
 
-### Avaliações & Estrelas
-- Apenas quem comprou o produto pode avaliar
-- Bloqueio de avaliação duplicada por pedido
-- Média de estrelas exibida em cada card da vitrine
-- Modal interativo com seletor de estrelas e comentário
+### Avaliações
+- Apenas quem comprou pode avaliar; bloqueio de duplicata por pedido
+- Média de estrelas na vitrine via `bulk-stats`
 
 ### Interface
-- Design premium com paleta roxa/creme
-- Fontes: Playfair Display (display) + Inter (corpo)
+- Design premium com paleta roxa/creme — Playfair Display + Inter
+- Toast system próprio (success/error/warning/info) — sem `alert()`
 - Totalmente responsivo
-- Modo Vendedor e Modo Admin com faixas visuais distintas
-- Auto-preenchimento de endereço via CEP (ViaCEP)
+- Auto-preenchimento de endereço via ViaCEP
 
 ---
 
-## Arquitetura do Backend
+## Arquitetura
+
+### Backend
 
 ```
 src/
-├── config/         # Conexão com o banco MySQL
-├── controllers/    # Recebe requisições e retorna respostas
-├── middlewares/    # Auth JWT + autorização por role
-├── models/         # Tipagens e interfaces
-├── repositories/   # Queries SQL diretas (padrão Repository)
-├── routes/         # Definição das rotas da API
-├── services/       # Regras de negócio
-├── utils/          # Multer (upload), helpers
-└── validators/     # Validação de dados de entrada
+├── config/         → Conexão MySQL via pool (variáveis de ambiente)
+├── controllers/    → Recebe requisições, delega para services
+├── middlewares/    → Auth JWT + autorização por role + validação
+├── repositories/   → Queries SQL (padrão Repository)
+├── routes/         → Definição das rotas da API
+├── services/       → Regras de negócio (inclui sellerService)
+├── utils/          → Multer com validação de MIME type
+└── validators/     → Validação de entrada (Zod/Joi)
 ```
 
-O backend segue o padrão **Controller → Service → Repository**, garantindo separação clara de responsabilidades e facilitando manutenção e testes.
+Padrão: **Controller → Service → Repository**
+
+### Frontend
+
+```
+frontend/
+├── app/            → Páginas e rotas (Next.js App Router)
+├── components/     → Componentes reutilizáveis (Toast, Button, Input…)
+├── contexts/       → CartContext (carrinho global)
+├── hooks/          → useAuth.ts (useRequireAuth, useCurrentUser, logout…)
+├── lib/            → api.ts (instância axios + interceptor de token + extractErrorMessage)
+├── types/          → api.ts (interfaces centralizadas: Product, Order, Analytics…)
+├── middleware.ts   → Proteção de rotas no servidor
+└── .env.local      → Variáveis de ambiente (não versionado)
+```
 
 ---
 
-## Stack Tecnológica
+## Stack
 
 | Camada | Tecnologia |
 |---|---|
 | Frontend | Next.js 16, React 19, TypeScript |
 | Backend | Node.js, Express 5, TypeScript |
-| Banco de dados | MySQL 8 (via mysql2) |
+| Banco de dados | MySQL 8 (mysql2) |
 | Autenticação | JWT (jsonwebtoken) + bcrypt |
-| Upload de arquivos | Multer |
+| Upload | Multer (MIME type validation, 5 MB limit) |
 | Pagamentos | Mercado Pago SDK v2 |
-| Estilização | Tailwind CSS v4 + CSS inline |
-| HTTP Client | Axios |
+| HTTP Client | Axios (instância centralizada com interceptor) |
 | Validação | Zod + Joi |
 
 ---
 
-## Estrutura do Banco de Dados
+## Banco de Dados
 
 ```sql
 users         — id, name, email, password, role
@@ -131,39 +131,84 @@ git clone https://github.com/AntonioFabrin/Fabrin-E-commerce.git
 cd Fabrin-E-commerce
 ```
 
-### 2. Configure as variáveis de ambiente
+### 2. Configure as variáveis de ambiente do backend
 
 ```bash
 cp .env.example .env
-# Edite o .env com suas credenciais
 ```
 
-### 3. Crie as tabelas no banco
+Edite o `.env`:
 
-Execute o arquivo `src/database/setup_completo.sql` no seu cliente MySQL (HeidiSQL, Workbench, etc.).
+```env
+PORT=3333
+JWT_SECRET=sua_chave_secreta_longa_e_aleatoria
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=sua_senha_mysql
+DB_NAME=ecommerce
+MP_ACCESS_TOKEN=seu_access_token_sandbox
+MP_PUBLIC_KEY=sua_public_key_sandbox
+FRONTEND_URL=http://localhost:3000
+```
 
-### 4. Instale as dependências e rode o backend
+### 3. Configure as variáveis de ambiente do frontend
 
 ```bash
-npm install
-npm run dev
-# Rodando em http://localhost:3333
+cd frontend
+cp .env.local.example .env.local   # ou crie manualmente
 ```
 
-### 5. Instale as dependências e rode o frontend
+Conteúdo do `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
+```
+
+### 4. Crie as tabelas no banco
+
+Execute o arquivo `src/database/setup_completo.sql` no seu cliente MySQL.
+
+### 5. Instale dependências e rode o backend
+
+```bash
+# Na raiz do projeto
+npm install
+npm run dev
+# → http://localhost:3333
+```
+
+### 6. Instale dependências e rode o frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# Rodando em http://localhost:3000
+# → http://localhost:3000
 ```
 
 ---
 
 ## Variáveis de Ambiente
 
-Veja o arquivo `.env.example` na raiz do projeto com todas as variáveis necessárias.
+### Backend (`.env` na raiz)
+
+| Variável | Descrição |
+|---|---|
+| `PORT` | Porta do servidor (padrão: 3333) |
+| `JWT_SECRET` | Chave secreta do JWT — **obrigatória** |
+| `DB_HOST` | Host do MySQL |
+| `DB_USER` | Usuário do MySQL |
+| `DB_PASSWORD` | Senha do MySQL |
+| `DB_NAME` | Nome do banco |
+| `MP_ACCESS_TOKEN` | Access Token do Mercado Pago |
+| `MP_PUBLIC_KEY` | Public Key do Mercado Pago |
+| `FRONTEND_URL` | URL do frontend (para CORS e redirects do MP) |
+
+### Frontend (`frontend/.env.local`)
+
+| Variável | Descrição |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | URL base do backend |
 
 ---
 
@@ -172,52 +217,67 @@ Veja o arquivo `.env.example` na raiz do projeto com todas as variáveis necess�
 ### Auth
 | Método | Rota | Descrição |
 |---|---|---|
-| POST | `/api/register` | Cadastro de usuário |
-| POST | `/api/login` | Login e geração de token |
+| POST | `/api/register` | Cadastro |
+| POST | `/api/login` | Login + token JWT |
 
 ### Produtos
 | Método | Rota | Proteção | Descrição |
 |---|---|---|---|
-| GET | `/api/products` | Pública | Lista produtos paginados |
-| GET | `/api/products/:id` | Pública | Detalhe de produto |
+| GET | `/api/products` | Pública | Lista paginada |
+| GET | `/api/products/:id` | Pública | Detalhe |
 | GET | `/api/products/seller` | JWT | Produtos do vendedor logado |
-| POST | `/api/products` | JWT + seller | Criar produto com imagem |
-| PUT | `/api/products/:id` | JWT + dono | Editar produto |
-| DELETE | `/api/products/:id` | JWT + dono | Remover produto |
+| POST | `/api/products` | JWT | Criar com imagem |
+| PUT | `/api/products/:id` | JWT + dono | Editar |
+| DELETE | `/api/products/:id` | JWT + dono | Remover |
 
 ### Pedidos
 | Método | Rota | Proteção | Descrição |
 |---|---|---|---|
 | GET | `/api/orders/my` | JWT | Pedidos do comprador |
-| GET | `/api/orders/seller` | JWT | Pedidos recebidos pelo vendedor |
+| GET | `/api/orders/seller` | JWT | Pedidos recebidos |
 
 ### Pagamentos
 | Método | Rota | Proteção | Descrição |
 |---|---|---|---|
-| POST | `/api/payment/preference` | JWT | Cria preferência (produto único) |
-| POST | `/api/payment/preference-cart` | JWT | Cria preferência (carrinho) |
-| POST | `/api/payment/webhook` | Pública | Webhook do Mercado Pago |
+| POST | `/api/payment/preference` | JWT | Preferência produto único |
+| POST | `/api/payment/preference-cart` | JWT | Preferência carrinho |
+| POST | `/api/payment/webhook` | Pública | Webhook Mercado Pago |
 
 ### Avaliações
 | Método | Rota | Proteção | Descrição |
 |---|---|---|---|
 | POST | `/api/reviews` | JWT | Criar avaliação |
-| GET | `/api/reviews/product/:id` | Pública | Avaliações de um produto |
+| GET | `/api/reviews/product/:id` | Pública | Avaliações do produto |
 | POST | `/api/reviews/bulk-stats` | Pública | Médias de múltiplos produtos |
+
+### Vendedores
+| Método | Rota | Proteção | Descrição |
+|---|---|---|---|
+| GET | `/api/sellers/:id/profile` | Pública | Perfil público do vendedor |
+| GET | `/api/sellers/analytics` | JWT | Dados financeiros do vendedor |
 
 ---
 
 ## Fluxo de Pagamento
 
 ```
-Cliente → "Comprar Agora" ou "Finalizar Carrinho"
-       → Preenche endereço de entrega
+Usuário → "Comprar Agora" / "Finalizar Carrinho"
+       → Preenche endereço
        → Backend cria Preference no Mercado Pago
-       → Redireciona para o Checkout Pro (sandbox)
-       → Cliente paga com Pix / Boleto / Cartão de teste
-       → MP notifica o webhook → pedido atualizado para "paid"
-       → Cliente redirecionado para /orders?status=sucesso
+       → Redirect para Checkout Pro (sandbox)
+       → Pagamento com Pix / Boleto / Cartão de teste
+       → Webhook notifica backend → pedido atualizado para "paid"
+       → Redirect para /orders?status=sucesso
 ```
+
+---
+
+## Deploy
+
+| Serviço | Plataforma | Observação |
+|---|---|---|
+| Backend | Railway | Detecta `PORT` automaticamente via env |
+| Frontend | Vercel | Configurar `NEXT_PUBLIC_API_URL` nas env vars |
 
 ---
 
@@ -230,4 +290,4 @@ Cliente → "Comprar Agora" ou "Finalizar Carrinho"
 
 ## Licença
 
-Este projeto está sob a licença MIT.
+MIT

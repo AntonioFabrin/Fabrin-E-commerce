@@ -25,7 +25,7 @@ const orderController = {
             const orders = await orderService.listUserOrders(userId);
             return res.status(200).json(orders);
         } catch (error: any) {
-            return res.status(500).json({ erro: 'Erro ao buscar seus pedidos.' });
+            return res.status(500).json({ erro: 'Erro ao buscar seus pedidos.', detalhe: error.message });
         }
     },
 
@@ -36,7 +36,7 @@ const orderController = {
             const orders = await orderService.listSellerOrders(sellerId);
             return res.status(200).json(orders);
         } catch (error: any) {
-            return res.status(500).json({ erro: 'Erro ao buscar pedidos recebidos.' });
+            return res.status(500).json({ erro: 'Erro ao buscar pedidos recebidos.', detalhe: error.message });
         }
     }
 };

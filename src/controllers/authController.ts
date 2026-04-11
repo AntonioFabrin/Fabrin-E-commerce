@@ -4,25 +4,22 @@ import jwt from 'jsonwebtoken';
 
 const authController = {
     register: async (req: Request, res: Response) => {
-        console.log("1. Chegou no Controller. Body:", req.body);
         try {
             const { name, email, password, role } = req.body;
-            console.log("2. Variáveis extraídas:", { name, email, password, role });
 
             const novoUserId = await authService.registerUser({ name, email, password, role });
             return res.status(201).json({ mensagem: "Id criado com sucesso", id: novoUserId });
         } catch (error: any) {
-            console.error("ERRO NO CONTROLLER:", error.message);
             return res.status(400).json({ erro: error.message });
         }
     },
 
     login: async (req: Request, res: Response) => {
         try {
-            console.log("🕵️ Tentando logar com os dados:");
             const { email, password } = req.body;
             const user = await authService.login(email, password);
-            const secret = process.env.JWT_SECRET || 'XT_WS_%*924=23=lufa';
+            const secret = process.env.JWT_SECRET;
+            if (!secret) throw new Error('JWT_SECRET não configurado.');
             const token = jwt.sign (
             {id: user.id, email: user.email, role: user.role},
             secret,
@@ -31,7 +28,7 @@ const authController = {
             return res.status(200).json({
                 mensagem: "Login conectado com sucesso!",
                 token:token,
-                user: {id: user.id, name:user.name, email:user.email}
+                user: {id: user.id, name: user.name, email: user.email, role: user.role}
             });
          } catch (error:any) {
             return res.status(401).json({ erro: error.message });
@@ -63,7 +60,6 @@ update: async (req: Request, res: Response) => {
                 });
             }
 
-            console.log(`⚖️ Executando exclusão do usuário ID: ${targetId}...`);
             await authService.deleteUser(targetId);
 
             return res.status(200).json({
@@ -76,9 +72,6 @@ update: async (req: Request, res: Response) => {
 
     getAll: async (req: Request, res: Response) => {
     try { 
-        console.log("🔍 Buscando todos os usuários cadastrados... ");
-        
-        // Ele tem que chamar o Service SEM passar parâmetros (tipo email)
         const users = await authService.getAllUsers() as any[];
 
         return res.status(200).json({

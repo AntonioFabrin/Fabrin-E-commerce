@@ -51,9 +51,7 @@ const paymentController = {
                 payment_methods: { installments: 12 }
             };
 
-            console.log('📦 Criando preferência (produto único):', product.name);
             const result = await preference.create({ body: preferenceBody });
-            console.log('✅ Preferência criada! ID:', result.id);
 
             // Gravar pedido no banco se logado
             const userData = (req as any).user;
@@ -66,9 +64,8 @@ const paymentController = {
                     );
                     await orderRepository.saveExternalReference(orderId, externalReference);
                     await orderRepository.createPayment(orderId, 'mercadopago', 'pending', result.id || '');
-                    console.log(`📝 Pedido #${orderId} gravado.`);
                 } catch (dbErr: any) {
-                    console.error('⚠️ Erro ao gravar pedido (não bloqueante):', dbErr.message);
+                    console.error('Erro ao gravar pedido (não bloqueante):', dbErr.message);
                 }
             }
 
@@ -79,7 +76,7 @@ const paymentController = {
             });
 
         } catch (error: any) {
-            console.error('❌ Erro MP:', error?.message);
+            console.error('Erro MP:', error?.message);
             if (error?.status === 401) return res.status(401).json({ erro: 'Credenciais inválidas.' });
             return res.status(500).json({ erro: 'Erro ao processar pagamento.', detalhe: error?.message });
         }
@@ -125,9 +122,7 @@ const paymentController = {
                 payment_methods: { installments: 12 }
             };
 
-            console.log(`🛒 Criando preferência (carrinho) — ${items.length} item(s) — Total: R$${total}`);
             const result = await preference.create({ body: preferenceBody });
-            console.log('✅ Preferência do carrinho criada! ID:', result.id);
 
             // Gravar pedido consolidado no banco se logado
             const userData = (req as any).user;
@@ -141,9 +136,8 @@ const paymentController = {
                     const orderId = await orderRepository.createOrder(userData.id, parseFloat(Number(total).toFixed(2)), dbItems);
                     await orderRepository.saveExternalReference(orderId, externalReference);
                     await orderRepository.createPayment(orderId, 'mercadopago', 'pending', result.id || '');
-                    console.log(`📝 Pedido do carrinho #${orderId} gravado.`);
                 } catch (dbErr: any) {
-                    console.error('⚠️ Erro ao gravar pedido do carrinho (não bloqueante):', dbErr.message);
+                    console.error('Erro ao gravar pedido do carrinho (não bloqueante):', dbErr.message);
                 }
             }
 
@@ -154,7 +148,7 @@ const paymentController = {
             });
 
         } catch (error: any) {
-            console.error('❌ Erro MP carrinho:', error?.message);
+            console.error('Erro MP carrinho:', error?.message);
             if (error?.status === 401) return res.status(401).json({ erro: 'Credenciais inválidas.' });
             return res.status(500).json({ erro: 'Erro ao processar carrinho.', detalhe: error?.message });
         }
@@ -164,7 +158,6 @@ const paymentController = {
     webhook: async (req: Request, res: Response) => {
         try {
             const { type, data } = req.body;
-            console.log(`🔔 Webhook MP — tipo: ${type} | id: ${data?.id}`);
 
             if (type === 'payment' && data?.id) {
                 const paymentId = String(data.id);
@@ -172,13 +165,12 @@ const paymentController = {
                 const order = await orderRepository.findByTransactionId(paymentId);
                 if (order) {
                     await orderRepository.updateOrderStatus(order.id, 'paid');
-                    console.log(`✅ Pedido #${order.id} marcado como PAGO.`);
                 }
             }
 
             return res.status(200).json({ recebido: true });
         } catch (error: any) {
-            console.error('❌ Erro no webhook:', error?.message);
+            console.error('Erro no webhook:', error?.message);
             return res.status(200).json({ recebido: true });
         }
     }

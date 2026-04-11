@@ -1,10 +1,11 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
+import { useRequireAuth } from '../../../hooks/useAuth';
+import api, { extractErrorMessage } from '../../../lib/api';
 
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px', marginBottom: 20 }}>
@@ -14,6 +15,8 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
 );
 
 export default function CreateProductPage() {
+  const router = useRouter();
+  const { loading: authLoading } = useRequireAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -22,7 +25,6 @@ export default function CreateProductPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -33,20 +35,17 @@ export default function CreateProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    const token = localStorage.getItem('@Ecommerce:token');
-    if (!token) { router.push('/login'); return; }
+    setLoading(true); setError('');
     try {
       const fd = new FormData();
       fd.append('name', name); fd.append('description', description);
       fd.append('price', price); fd.append('stock', stock);
       fd.append('category_id', '1');
       if (imageFile) fd.append('image', imageFile);
-      await axios.post('http://localhost:3333/api/products', fd, { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` } });
+      await api.post('/api/products', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.erro || 'Erro ao criar produto.');
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Erro ao criar produto.'));
     } finally { setLoading(false); }
   };
 
