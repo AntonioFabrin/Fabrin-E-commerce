@@ -10,8 +10,9 @@ frontend/node_modules/
 # Build do Next.js
 frontend/.next/
 
-# Uploads de imagens (arquivos locais)
-uploads/
+# Uploads de imagens (arquivos locais, mas mantém a pasta)
+uploads/*
+!uploads/.gitkeep
 
 # Logs
 *.log
