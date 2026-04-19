@@ -1,25 +1,22 @@
 -- ============================================================
 -- FABRIN MARKETPLACE — SCRIPT COMPLETO DO BANCO DE DADOS
--- Execute este arquivo inteiro no HeidiSQL
--- Banco: ecommerce | Login: root | Senha: 1234
+-- Execute este arquivo no Railway ou qualquer cliente MySQL
 -- ============================================================
 
-USE ecommerce;
-
 -- ============================================================
--- 1. TABELA: users (já existe, só garante estrutura)
+-- 1. TABELA: users
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     name       VARCHAR(255) NOT NULL,
     email      VARCHAR(255) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
-    role       ENUM('buyer','seller','admin') NOT NULL DEFAULT 'buyer',
+    role       ENUM('customer', 'seller', 'admin') NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================
--- 2. TABELA: products (já existe, só garante estrutura)
+-- 2. TABELA: products
 -- ============================================================
 CREATE TABLE IF NOT EXISTS products (
     id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -35,7 +32,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- ============================================================
--- 3. TABELA: orders — atualiza colunas necessárias
+-- 3. TABELA: orders
 -- ============================================================
 CREATE TABLE IF NOT EXISTS orders (
     id                 INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,16 +44,8 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Adiciona external_reference se não existir (para bancos já existentes)
-ALTER TABLE orders
-    ADD COLUMN IF NOT EXISTS external_reference VARCHAR(255) NULL AFTER status;
-
--- Garante default correto no status
-ALTER TABLE orders
-    MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending';
-
 -- ============================================================
--- 4. TABELA: order_items (já existe, só garante estrutura)
+-- 4. TABELA: order_items
 -- ============================================================
 CREATE TABLE IF NOT EXISTS order_items (
     id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,24 +58,23 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 
 -- ============================================================
--- 5. TABELA: payments (já existe, verifica estrutura)
+-- 5. TABELA: payments
 -- ============================================================
 CREATE TABLE IF NOT EXISTS payments (
-    id               INT AUTO_INCREMENT PRIMARY KEY,
-    order_id         INT NOT NULL,
-    payment_method   VARCHAR(50),
-    payment_status   VARCHAR(50) DEFAULT 'pending',
-    transaction_id   VARCHAR(255),
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    order_id       INT NOT NULL,
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50) DEFAULT 'pending',
+    transaction_id VARCHAR(255),
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
--- Adiciona index no transaction_id para o webhook ser rápido
-CREATE INDEX IF NOT EXISTS idx_payments_transaction_id
+CREATE INDEX IF NOT EXISTS idx_payments_transaction
     ON payments(transaction_id);
 
 -- ============================================================
--- 6. TABELA: reviews — NOVA (sistema de avaliações)
+-- 6. TABELA: reviews
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reviews (
     id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -96,22 +84,20 @@ CREATE TABLE IF NOT EXISTS reviews (
     rating     TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment    TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    -- Impede avaliação duplicada do mesmo produto no mesmo pedido
     UNIQUE KEY uq_review (product_id, user_id, order_id),
-
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
     FOREIGN KEY (order_id)   REFERENCES orders(id)   ON DELETE CASCADE
 );
 
 -- ============================================================
--- VERIFICAÇÃO FINAL — rode para confirmar que tudo criou certo
+-- 7. ADMIN padrão — troque a senha depois de subir!
+-- Senha: admin123 (bcrypt hash abaixo)
 -- ============================================================
-SELECT 
-    TABLE_NAME,
-    TABLE_ROWS,
-    CREATE_TIME
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'ecommerce'
-ORDER BY TABLE_NAME;
+INSERT IGNORE INTO users (name, email, password, role)
+VALUES (
+    'Admin',
+    'admin@fabrinmarket.com',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'admin'
+);
