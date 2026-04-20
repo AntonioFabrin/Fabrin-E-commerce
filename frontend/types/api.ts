@@ -8,6 +8,8 @@ export interface Product {
   image_url: string;
   seller_id: number;
   category_id?: number;
+  review_count?: number;
+  review_avg?: number;
 }
 
 export interface ReviewStat {
