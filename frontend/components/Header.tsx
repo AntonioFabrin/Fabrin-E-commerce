@@ -24,7 +24,14 @@ export default function Header() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none' }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img
+            src="/app-icon.svg"
+            alt=""
+            width={34}
+            height={34}
+            style={{ display: 'block', borderRadius: 10 }}
+          />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: '#E8D5FF', letterSpacing: '-0.5px' }}>
             Fabrin<span style={{ color: 'var(--lavender)' }}>Market</span>
           </span>

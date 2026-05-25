@@ -7,6 +7,12 @@ import Header from '../components/Header';
 export const metadata = {
   title: 'Fabrin Market — Marketplace Premium',
   description: 'Produtos selecionados com qualidade garantida.',
+  icons: {
+    icon: [
+      { url: '/app-icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/app-icon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
