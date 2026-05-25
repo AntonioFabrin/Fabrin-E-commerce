@@ -1,22 +1,17 @@
-import axios from 'axios'; 
-
-const api = axios.create ({
-    baseURL: 'http://localhost:3333',
-});
+import api from '../lib/api';
 
 export const productService = {
-    create: async (formData: FormData, token: string) => {
-        const response = await api.post('/products',formData, {
+    create: async (formData: FormData) => {
+        const response = await api.post('/api/products', formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'multipart/form-data'
             }
         });
         return response.data;
     },
 
     getAll: async () => {
-        const response = await api.get ('/products');
+        const response = await api.get('/api/products');
         return response.data;
     }
 };

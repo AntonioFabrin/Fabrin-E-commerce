@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { clearRouteAuthCookies } from '../lib/authCookies';
 
 export interface AuthUser {
   id: number;
@@ -32,8 +33,7 @@ export function getToken(): string | null {
 export function logout(router?: ReturnType<typeof useRouter>) {
   localStorage.removeItem('@Ecommerce:token');
   localStorage.removeItem('@Ecommerce:name');
-  document.cookie = '@Ecommerce:logged=; path=/; max-age=0';
-  document.cookie = '@Ecommerce:role=; path=/; max-age=0';
+  clearRouteAuthCookies();
   if (router) router.push('/login');
 }
 

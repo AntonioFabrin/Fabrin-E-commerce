@@ -21,6 +21,7 @@
 - Cadastro e login com JWT (8h de expiração)
 - Sistema de roles: `buyer`, `seller`, `admin`
 - Proteção de rotas no servidor via `proxy.ts` do Next.js 16 (bloqueia antes de renderizar)
+- Cookies de rota com `SameSite=Lax` e `Secure` quando o site roda em HTTPS
 - Hook `useRequireAuth` centraliza verificação de auth no client-side
 
 ### Produtos
@@ -82,6 +83,7 @@ frontend/
 ├── contexts/       → CartContext (carrinho global)
 ├── hooks/          → useAuth.ts (useRequireAuth, useCurrentUser, logout…)
 ├── lib/            → api.ts (instância axios + interceptor de token + extractErrorMessage)
+│                    → authCookies.ts (cookies de login/logout para o proxy)
 ├── types/          → api.ts (interfaces centralizadas: Product, Order, Analytics…)
 ├── proxy.ts        → Proteção de rotas no servidor
 └── .env.local      → Variáveis de ambiente (não versionado)
@@ -99,8 +101,17 @@ frontend/
 | Autenticação | JWT (jsonwebtoken) + bcrypt |
 | Upload | Multer (MIME type validation, 5 MB limit) |
 | Pagamentos | Mercado Pago SDK v2 |
-| HTTP Client | Axios (instância centralizada com interceptor) |
+| HTTP Client | Axios (instância centralizada com interceptor e baseURL via env) |
 | Validação | Zod + Joi |
+
+---
+
+## Ajustes Recentes
+
+- O backend raiz ficou apenas com dependências de backend; `next` foi removido dali.
+- O client de produtos passou a usar o mesmo axios centralizado do restante do frontend.
+- As cookies usadas pelo `proxy.ts` foram endurecidas com `SameSite=Lax`.
+- As imagens remotas do Next agora ficam limitadas ao host configurado do backend e ao caminho `/uploads/**`.
 
 ---
 
@@ -287,6 +298,7 @@ O projeto agora inclui `docker-compose.yml` com:
 - `db`: MySQL 8 com scripts de schema em `src/database/`
 - `backend`: API Node/Express
 - `frontend`: Next.js
+- `frontend` usa `NEXT_PUBLIC_API_URL` para chamadas da UI e `BACKEND_INTERNAL_URL` para rewrites internas no container
 
 ### Subir tudo
 

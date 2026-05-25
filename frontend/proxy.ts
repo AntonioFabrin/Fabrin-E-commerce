@@ -15,7 +15,7 @@ export function proxy(request: NextRequest) {
 
   if (!needsLogin && !needsSeller) return NextResponse.next();
 
-  const logged = request.cookies.get('@Ecommerce:logged');
+  const logged = request.cookies.get('@Ecommerce:logged')?.value === '1';
 
   // Nao logado -> manda para login
   if (!logged) {
