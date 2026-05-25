@@ -20,7 +20,7 @@
 ### Autenticação & Usuários
 - Cadastro e login com JWT (8h de expiração)
 - Sistema de roles: `buyer`, `seller`, `admin`
-- Proteção de rotas no servidor via `middleware.ts` do Next.js (bloqueia antes de renderizar)
+- Proteção de rotas no servidor via `proxy.ts` do Next.js 16 (bloqueia antes de renderizar)
 - Hook `useRequireAuth` centraliza verificação de auth no client-side
 
 ### Produtos
@@ -83,7 +83,7 @@ frontend/
 ├── hooks/          → useAuth.ts (useRequireAuth, useCurrentUser, logout…)
 ├── lib/            → api.ts (instância axios + interceptor de token + extractErrorMessage)
 ├── types/          → api.ts (interfaces centralizadas: Product, Order, Analytics…)
-├── middleware.ts   → Proteção de rotas no servidor
+├── proxy.ts        → Proteção de rotas no servidor
 └── .env.local      → Variáveis de ambiente (não versionado)
 ```
 
@@ -278,6 +278,31 @@ Usuário → "Comprar Agora" / "Finalizar Carrinho"
 |---|---|---|
 | Backend | Railway | Detecta `PORT` automaticamente via env |
 | Frontend | Vercel | Configurar `NEXT_PUBLIC_API_URL` nas env vars |
+
+---
+
+## Docker
+
+O projeto agora inclui `docker-compose.yml` com:
+- `db`: MySQL 8 com scripts de schema em `src/database/`
+- `backend`: API Node/Express
+- `frontend`: Next.js
+
+### Subir tudo
+
+```bash
+docker compose up --build
+```
+
+### Portas
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:3333`
+- MySQL: `localhost:3306`
+
+### Observação
+
+Se você quiser usar seus próprios tokens do Mercado Pago ou credenciais do banco, mantenha o `.env` na raiz preenchido antes de subir o backend.
 
 ---
 

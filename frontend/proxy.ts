@@ -7,17 +7,17 @@ const REQUIRES_LOGIN = ['/orders', '/account'];
 // Rotas que exigem login E role seller ou admin
 const REQUIRES_SELLER = ['/dashboard', '/products/create', '/products/seller-products'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const needsLogin  = REQUIRES_LOGIN.some(r => pathname.startsWith(r));
+  const needsLogin = REQUIRES_LOGIN.some(r => pathname.startsWith(r));
   const needsSeller = REQUIRES_SELLER.some(r => pathname.startsWith(r));
 
   if (!needsLogin && !needsSeller) return NextResponse.next();
 
   const logged = request.cookies.get('@Ecommerce:logged');
 
-  // Não logado → manda para login
+  // Nao logado -> manda para login
   if (!logged) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
@@ -28,7 +28,6 @@ export function middleware(request: NextRequest) {
   if (needsSeller) {
     const role = request.cookies.get('@Ecommerce:role')?.value || 'customer';
     if (role === 'customer') {
-      // Redireciona para a loja com mensagem
       const productsUrl = new URL('/products', request.url);
       productsUrl.searchParams.set('blocked', '1');
       return NextResponse.redirect(productsUrl);
