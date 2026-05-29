@@ -9,7 +9,7 @@ const orderRepository = {
             await connection.beginTransaction();
 
             const [orderResult]: any = await connection.execute(
-                'INSERT INTO orders (user_id, total, status) VALUES (?, ?, ?)',
+                'INSERT INTO orders (user_id, total, status) VALUES (?, ?, ?) RETURNING id',
                 [userId, total, 'pending']
             );
             const orderId = orderResult.insertId;
@@ -42,7 +42,7 @@ const orderRepository = {
     // ─── GRAVAR PAGAMENTO ────────────────────────────────────────────────────────
     createPayment: async (orderId: number, method: string, status: string, transactionId: string) => {
         const [result]: any = await db.execute(
-            'INSERT INTO payments (order_id, payment_method, payment_status, transaction_id) VALUES (?, ?, ?, ?)',
+            'INSERT INTO payments (order_id, payment_method, payment_status, transaction_id) VALUES (?, ?, ?, ?) RETURNING id',
             [orderId, method, status, transactionId]
         );
         return result.insertId;
@@ -90,13 +90,13 @@ const orderRepository = {
                 o.status,
                 o.external_reference,
                 o.created_at,
-                JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'product_id',   oi.product_id,
-                        'quantity',     oi.quantity,
-                        'price',        oi.price,
+                json_agg(
+                    json_build_object(
+                        'product_id', oi.product_id,
+                        'quantity', oi.quantity,
+                        'price', oi.price,
                         'product_name', p.name,
-                        'image_url',    p.image_url
+                        'image_url', p.image_url
                     )
                 ) AS items,
                 (SELECT pay.payment_method FROM payments pay WHERE pay.order_id = o.id ORDER BY pay.id DESC LIMIT 1) AS payment_method,
@@ -123,13 +123,13 @@ const orderRepository = {
                 o.created_at,
                 u.name  AS buyer_name,
                 u.email AS buyer_email,
-                JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'product_id',   oi.product_id,
+                json_agg(
+                    json_build_object(
+                        'product_id', oi.product_id,
                         'product_name', p.name,
-                        'quantity',     oi.quantity,
-                        'price',        oi.price,
-                        'image_url',    p.image_url
+                        'quantity', oi.quantity,
+                        'price', oi.price,
+                        'image_url', p.image_url
                     )
                 ) AS items,
                 (SELECT pay.payment_method FROM payments pay WHERE pay.order_id = o.id ORDER BY pay.id DESC LIMIT 1) AS payment_method,

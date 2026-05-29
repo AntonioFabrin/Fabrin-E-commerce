@@ -7,7 +7,8 @@ import { Button } from '../../components/ui/Button';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../components/ui/Toast';
 import { useCurrentUser } from '../../hooks/useAuth';
-import api, { API, extractErrorMessage } from '../../lib/api';
+import api, { extractErrorMessage } from '../../lib/api';
+import { getImageUrl } from '../../lib/images';
 import type { Product, ReviewStat } from '../../types/api';
 
 // ── Conteúdo real da página (usa useSearchParams → precisa de Suspense) ────────
@@ -156,7 +157,7 @@ function ProductsPageContent() {
                 {/* Imagem */}
                 <div style={{ height: 200, background: 'var(--mist)', position: 'relative', overflow: 'hidden' }}>
                   {product.image_url ? (
-                    <img src={`${API}/${product.image_url}`} alt={product.name}
+                    <img src={getImageUrl(product.image_url)} alt={product.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
                       onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
                       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}

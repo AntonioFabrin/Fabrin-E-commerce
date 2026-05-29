@@ -27,6 +27,10 @@ app.get('/api/ping', (req, res) => {
     res.json({ mensagem: 'Servidor rodando!' });
 });
 
+app.get('/', (req, res) => {
+    res.json({ mensagem: 'API FabrinMarket online!' });
+});
+
 app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')));
 app.use('/api', authRoutes);
 app.use('/api/products', productRoutes);
@@ -36,6 +40,10 @@ app.use('/api/reviews',  reviewRoutes);
 app.use('/api/sellers',  sellerRoutes); // ✅ Perfil público do vendedor
 
 const PORT = Number(process.env.PORT) || 3333;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}!`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Servidor rodando na porta ${PORT}!`);
+    });
+}
+
+export default app;

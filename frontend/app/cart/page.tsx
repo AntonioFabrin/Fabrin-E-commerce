@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import api, { API, extractErrorMessage } from '../../lib/api';
+import api, { extractErrorMessage } from '../../lib/api';
+import { getImageUrl } from '../../lib/images';
 
 const Spin = () => (
   <>
@@ -50,7 +51,7 @@ function CartItems({ onNext }: { onNext: () => void }) {
             <div key={item.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)', background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                 {item.image_url
-                  ? <img src={`${API}/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ? <img src={getImageUrl(item.image_url)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: 0.4 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -231,7 +232,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                 {item.image_url
-                  ? <img src={`${API}/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ? <img src={getImageUrl(item.image_url)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>

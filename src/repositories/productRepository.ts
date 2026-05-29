@@ -6,8 +6,9 @@ const productRepository = {
             const { seller_id, name, description, price, stock, image_url } = productData;
             
             const query = `
-                INSERT INTO products (seller_id, name, description, price, stock, image_url) 
+                INSERT INTO products (seller_id, name, description, price, stock, image_url)
                 VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING id
             `;
             
             const values = [seller_id, name, description, price, stock, image_url];
@@ -23,9 +24,9 @@ const productRepository = {
     findAll: async (limit: number, offset: number) => {
         try {
             const query = 'SELECT * FROM products ORDER BY id DESC LIMIT ? OFFSET ?';
-            const [rows] = await db.execute(query, [limit.toString(), offset.toString()]);
+            const [rows] = await db.execute(query, [limit, offset]);
 
-            const countQuery = 'SELECT COUNT(*) as total FROM products';
+            const countQuery = 'SELECT COUNT(*)::int as total FROM products';
             const [countResult] = await db.execute(countQuery);
             const totalItems = (countResult as any)[0].total;
 
@@ -68,7 +69,7 @@ const productRepository = {
             
             const query = `
                 UPDATE products
-                SET name = ?, description = ?, price = ?, stock = ?, image_url = ? 
+                SET name = ?, description = ?, price = ?, stock = ?, image_url = COALESCE(?, image_url) 
                 WHERE id = ?
             `;
             

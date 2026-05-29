@@ -1,20 +1,72 @@
-import mysql from "mysql2/promise";
+import { Pool, PoolClient, QueryResult } from 'pg';
 import dotenv from 'dotenv';
+import { getPostgresConfig } from './postgres';
 
 dotenv.config();
 
-// O Railway injeta variáveis no formato MYSQL* quando você adiciona
-// o plugin MySQL. Fazemos fallback para DB_* para rodar localmente.
-const pool = mysql.createPool({
-    host:     process.env.MYSQLHOST     || process.env.DB_HOST     || 'localhost',
-    port:     Number(process.env.MYSQLPORT     || process.env.DB_PORT)  || 3306,
-    user:     process.env.MYSQLUSER     || process.env.DB_USER     || 'root',
-    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '',
-    database: process.env.MYSQLDATABASE || process.env.DB_NAME     || 'ecommerce',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-});
+type QueryParams = readonly unknown[];
 
-export default pool;
+const toPostgresQuery = (query: string) => {
+    let paramIndex = 0;
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+
+    return query.replace(/['"?]/g, (char, offset) => {
+        const previous = query[offset - 1];
+
+        if (char === "'" && !inDoubleQuote && previous !== '\\') {
+            inSingleQuote = !inSingleQuote;
+            return char;
+        }
+
+        if (char === '"' && !inSingleQuote && previous !== '\\') {
+            inDoubleQuote = !inDoubleQuote;
+            return char;
+        }
+
+        if (char === '?' && !inSingleQuote && !inDoubleQuote) {
+            paramIndex += 1;
+            return `$${paramIndex}`;
+        }
+
+        return char;
+    });
+};
+
+const normalizeResult = (result: QueryResult) => {
+    if (result.command === 'SELECT') {
+        return result.rows;
+    }
+
+    return {
+        insertId: result.rows[0]?.id,
+        affectedRows: result.rowCount ?? 0,
+        rowCount: result.rowCount ?? 0,
+        rows: result.rows,
+    };
+};
+
+const pool = new Pool(getPostgresConfig());
+
+const executeWithClient = async (client: Pool | PoolClient, query: string, params: QueryParams = []) => {
+    const result = await client.query(toPostgresQuery(query), [...params]);
+    return [normalizeResult(result), []];
+};
+
+const db = {
+    execute: (query: string, params: QueryParams = []) => executeWithClient(pool, query, params),
+
+    getConnection: async () => {
+        const client = await pool.connect();
+
+        return {
+            execute: (query: string, params: QueryParams = []) => executeWithClient(client, query, params),
+            beginTransaction: () => client.query('BEGIN'),
+            commit: () => client.query('COMMIT'),
+            rollback: () => client.query('ROLLBACK'),
+            release: () => client.release(),
+        };
+    },
+};
+
+export default db;

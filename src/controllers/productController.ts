@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import productService from '../services/productService';
+import { uploadProductImage } from '../services/storageService';
 
 const productController = {
     create: async (req: Request, res: Response) => {
@@ -13,7 +14,7 @@ const productController = {
             
             let image_url = '';
             if (req.file) {
-                image_url = `uploads/${req.file.filename}`;
+                image_url = await uploadProductImage(req.file, userData.id);
             } else {
                 return res.status(400).json({ erro: "A imagem do produto é obrigatória!" });
             }

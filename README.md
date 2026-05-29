@@ -4,12 +4,12 @@
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Mercado_Pago-Sandbox-00B1EA?style=for-the-badge" />
 </p>
 
 <p align="center">
-  Marketplace completo desenvolvido do zero com Next.js, Node.js, TypeScript e MySQL.<br/>
+  Marketplace completo desenvolvido do zero com Next.js, Node.js, TypeScript e PostgreSQL.<br/>
   Integração real com Mercado Pago (Pix, boleto e cartão), sistema de avaliações, carrinho persistente e painel do vendedor.
 </p>
 
@@ -62,7 +62,7 @@
 
 ```
 src/
-├── config/         → Conexão MySQL via pool (variáveis de ambiente)
+├── config/         → Conexão PostgreSQL via pool (variáveis de ambiente)
 ├── controllers/    → Recebe requisições, delega para services
 ├── middlewares/    → Auth JWT + autorização por role + validação
 ├── repositories/   → Queries SQL (padrão Repository)
@@ -97,7 +97,7 @@ frontend/
 |---|---|
 | Frontend | Next.js 16, React 19, TypeScript |
 | Backend | Node.js, Express 5, TypeScript |
-| Banco de dados | MySQL 8 (mysql2) |
+| Banco de dados | PostgreSQL 16 (pg) |
 | Autenticação | JWT (jsonwebtoken) + bcrypt |
 | Upload | Multer (MIME type validation, 5 MB limit) |
 | Pagamentos | Mercado Pago SDK v2 |
@@ -132,7 +132,7 @@ reviews       — id, product_id, user_id, order_id, rating, comment
 
 ### Pré-requisitos
 - Node.js 18+
-- MySQL 8 rodando localmente
+- PostgreSQL 16 rodando localmente
 - Conta de desenvolvedor no [Mercado Pago](https://www.mercadopago.com.br/developers)
 
 ### 1. Clone o repositório
@@ -154,8 +154,9 @@ Edite o `.env`:
 PORT=3333
 JWT_SECRET=sua_chave_secreta_longa_e_aleatoria
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=sua_senha_mysql
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=sua_senha_postgres
 DB_NAME=ecommerce
 MP_ACCESS_TOKEN=seu_access_token_sandbox
 MP_PUBLIC_KEY=sua_public_key_sandbox
@@ -177,7 +178,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3333
 
 ### 4. Crie as tabelas no banco
 
-Execute o arquivo `src/database/setup_completo.sql` no seu cliente MySQL.
+Execute o arquivo `src/database/setup_completo.sql` no seu cliente PostgreSQL.
 
 ### 5. Instale dependências e rode o backend
 
@@ -207,10 +208,18 @@ npm run dev
 |---|---|
 | `PORT` | Porta do servidor (padrão: 3333) |
 | `JWT_SECRET` | Chave secreta do JWT — **obrigatória** |
-| `DB_HOST` | Host do MySQL |
-| `DB_USER` | Usuário do MySQL |
-| `DB_PASSWORD` | Senha do MySQL |
+| `DB_HOST` | Host do PostgreSQL |
+| `DB_PORT` | Porta do PostgreSQL |
+| `DB_USER` | Usuário do PostgreSQL |
+| `DB_PASSWORD` | Senha do PostgreSQL |
 | `DB_NAME` | Nome do banco |
+| `DATABASE_URL` | URL completa do PostgreSQL; quando definida, tem prioridade sobre as variaveis `DB_*` |
+| `SUPABASE_DIRECT_DATABASE_URL` | URL direta do Supabase, opcional para referencia/manutencao; o app usa `DATABASE_URL` |
+| `DB_SSL` | Use `true` em bancos hospedados como Supabase |
+| `DB_POOL_MAX` | Tamanho maximo do pool; use `1` em serverless/Vercel |
+| `SUPABASE_URL` | URL do projeto Supabase, usada para enviar imagens ao Storage |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave server-side do Supabase para upload no bucket; nao exponha no frontend |
+| `SUPABASE_PRODUCTS_BUCKET` | Nome do bucket de imagens dos produtos |
 | `MP_ACCESS_TOKEN` | Access Token do Mercado Pago |
 | `MP_PUBLIC_KEY` | Public Key do Mercado Pago |
 | `FRONTEND_URL` | URL do frontend (para CORS e redirects do MP) |
@@ -287,15 +296,46 @@ Usuário → "Comprar Agora" / "Finalizar Carrinho"
 
 | Serviço | Plataforma | Observação |
 |---|---|---|
-| Backend | Railway | Detecta `PORT` automaticamente via env |
+| Backend | Vercel | O Express em `src/index.ts` exporta o app para rodar como Vercel Function |
 | Frontend | Vercel | Configurar `NEXT_PUBLIC_API_URL` nas env vars |
+
+### Backend na Vercel com Supabase
+
+No projeto do backend na Vercel, configure as variaveis:
+
+```env
+DATABASE_URL=cole_a_string_exata_do_supabase_transaction_pooler
+SUPABASE_DIRECT_DATABASE_URL=cole_a_string_direta_do_supabase
+DB_SSL=true
+DB_POOL_MAX=1
+SUPABASE_URL=https://seu-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=cole_a_service_role_key
+SUPABASE_PRODUCTS_BUCKET=product-images
+JWT_SECRET=sua_chave_longa_e_aleatoria
+FRONTEND_URL=https://url-do-frontend.vercel.app
+MP_ACCESS_TOKEN=seu_token_sandbox_ou_prod
+MP_PUBLIC_KEY=sua_public_key
+```
+
+Para Supabase em Vercel, copie a connection string em `Connect -> Transaction pooler`. Para testar localmente ou rodar `npm run db:init`, a `Session pooler` tambem funciona, mas a string precisa ser copiada exatamente do painel.
+
+Depois de configurar o banco:
+
+```bash
+npm run db:check
+npm run db:init
+npm run db:storage
+npm run build
+```
+
+O script `db:storage` cria/atualiza o bucket publico `product-images` no Supabase e permite leitura publica das imagens. O backend usa Multer em memoria e envia os arquivos para esse bucket antes de salvar a URL publica no banco.
 
 ---
 
 ## Docker
 
 O projeto agora inclui `docker-compose.yml` com:
-- `db`: MySQL 8 com scripts de schema em `src/database/`
+- `db`: PostgreSQL 16 com scripts de schema em `src/database/`
 - `backend`: API Node/Express
 - `frontend`: Next.js
 - `frontend` usa `NEXT_PUBLIC_API_URL` para chamadas da UI e `BACKEND_INTERNAL_URL` para rewrites internas no container
@@ -310,7 +350,7 @@ docker compose up --build
 
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:3333`
-- MySQL: `localhost:3306`
+- PostgreSQL: `localhost:5432`
 
 ### Observação
 

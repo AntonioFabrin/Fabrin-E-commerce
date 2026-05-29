@@ -12,7 +12,8 @@ const reviewRepository = {
     }) => {
         const [result]: any = await db.execute(
             `INSERT INTO reviews (product_id, user_id, order_id, rating, comment)
-             VALUES (?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?)
+             RETURNING id`,
             [data.product_id, data.user_id, data.order_id, data.rating, data.comment]
         );
         return result.insertId;
@@ -36,13 +37,13 @@ const reviewRepository = {
     getStats: async (productId: number) => {
         const [rows]: any = await db.execute(
             `SELECT 
-                COUNT(*)            AS total,
+                COUNT(*)::int        AS total,
                 ROUND(AVG(rating), 1) AS average,
-                SUM(rating = 5)     AS stars5,
-                SUM(rating = 4)     AS stars4,
-                SUM(rating = 3)     AS stars3,
-                SUM(rating = 2)     AS stars2,
-                SUM(rating = 1)     AS stars1
+                (COUNT(*) FILTER (WHERE rating = 5))::int AS stars5,
+                (COUNT(*) FILTER (WHERE rating = 4))::int AS stars4,
+                (COUNT(*) FILTER (WHERE rating = 3))::int AS stars3,
+                (COUNT(*) FILTER (WHERE rating = 2))::int AS stars2,
+                (COUNT(*) FILTER (WHERE rating = 1))::int AS stars1
              FROM reviews
              WHERE product_id = ?`,
             [productId]
@@ -56,7 +57,7 @@ const reviewRepository = {
         const placeholders = productIds.map(() => '?').join(',');
         const [rows] = await db.execute(
             `SELECT product_id,
-                    COUNT(*)              AS total,
+                    COUNT(*)::int         AS total,
                     ROUND(AVG(rating), 1) AS average
              FROM reviews
              WHERE product_id IN (${placeholders})

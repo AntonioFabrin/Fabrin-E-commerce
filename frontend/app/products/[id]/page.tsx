@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { useRequireAuth } from '../../../hooks/useAuth';
-import api, { API, extractErrorMessage } from '../../../lib/api';
+import api, { extractErrorMessage } from '../../../lib/api';
+import { getImageUrl } from '../../../lib/images';
 
 const Spin = () => (
   <>
@@ -49,7 +50,7 @@ export default function EditProductPage() {
         setDescription(p.description ?? '');
         setPrice(String(p.price ?? ''));
         setStock(String(p.stock ?? ''));
-        if (p.image_url) setCurrentImage(`${API}/${p.image_url}`);
+        if (p.image_url) setCurrentImage(getImageUrl(p.image_url));
       })
       .catch(() => setError('Produto não encontrado.'))
       .finally(() => setLoading(false));

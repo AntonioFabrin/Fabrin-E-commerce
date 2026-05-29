@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRequireAuth, logout } from '../../hooks/useAuth';
-import api, { API, extractErrorMessage } from '../../lib/api';
+import api, { extractErrorMessage } from '../../lib/api';
+import { getImageUrl } from '../../lib/images';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import type { Order, OrderItem } from '../../types/api';
@@ -73,7 +74,7 @@ function OrderCard({ order }: { order: Order }) {
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--cream)', borderRadius: 'var(--radius-md)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                 {item.image_url
-                  ? <img src={`${API}/${item.image_url}`} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ? <img src={getImageUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>

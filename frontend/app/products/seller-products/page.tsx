@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Stars } from '../../../components/ui/Stars';
 import { Button } from '../../../components/ui/Button';
 import { useCart } from '../../../contexts/CartContext';
-import api, { API } from '../../../lib/api';
+import api from '../../../lib/api';
+import { getImageUrl } from '../../../lib/images';
 import type { SellerProfile, SellerStats, Product, Review } from '../../../types/api';
 
 // ── Spinner ────────────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ function SellerProductCard({ product }: { product: Product }) {
       {/* Imagem */}
       <div style={{ height: 180, background: 'var(--mist)', overflow: 'hidden', position: 'relative' }}>
         {product.image_url
-          ? <img src={`${API}/${product.image_url}`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+          ? <img src={getImageUrl(product.image_url)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
             />

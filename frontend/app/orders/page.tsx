@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Button } from '../../components/ui/Button';
 import { StarPicker } from '../../components/ui/Stars';
 import { useRequireAuth } from '../../hooks/useAuth';
-import api, { API, extractErrorMessage } from '../../lib/api';
+import api, { extractErrorMessage } from '../../lib/api';
+import { getImageUrl } from '../../lib/images';
 import type { Order, OrderItem } from '../../types/api';
 
 type PageStatus = 'sucesso' | 'pendente' | 'erro' | null;
@@ -131,7 +132,7 @@ function OrderCard({ order, isSeller = false, onReview, reviewedSet }: {
         <div style={{ padding: '0 24px 16px', display: 'flex', gap: 8 }}>
           {items.slice(0, 4).map((item, idx) => (
             <div key={idx} style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }} title={item.product_name}>
-              {item.image_url ? <img src={`${API}/${item.image_url}`} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📦</div>}
+              {item.image_url ? <img src={getImageUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📦</div>}
             </div>
           ))}
           {items.length > 4 && <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--mist)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--muted)' }}>+{items.length - 4}</div>}
@@ -147,7 +148,7 @@ function OrderCard({ order, isSeller = false, onReview, reviewedSet }: {
               return (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                   <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
-                    {item.image_url ? <img src={`${API}/${item.image_url}`} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📦</div>}
+                    {item.image_url ? <img src={getImageUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📦</div>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--royal)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>

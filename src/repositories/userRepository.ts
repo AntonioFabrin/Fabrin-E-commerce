@@ -10,7 +10,7 @@ const userRepository = {
     create: async (user: any) => {
         const { name, email, password, role } = user;
        
-        const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+        const query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?) RETURNING id';
         
         const [result]: any = await db.execute(query, [name, email, password, role]);
         return result.insertId;

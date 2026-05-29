@@ -19,7 +19,7 @@ const sellerRepository = {
         const [rows] = await db.execute(
             `SELECT 
                 p.id, p.name, p.description, p.price, p.stock, p.image_url,
-                COUNT(r.id)             AS review_count,
+                COUNT(r.id)::int        AS review_count,
                 ROUND(AVG(r.rating), 1) AS review_avg
              FROM products p
              LEFT JOIN reviews r ON r.product_id = p.id
@@ -51,17 +51,17 @@ const sellerRepository = {
 
     findStats: async (sellerId: number) => {
         const [[productStats]]: any = await db.execute(
-            `SELECT COUNT(*) AS total_products, COALESCE(SUM(stock), 0) AS total_stock
+            `SELECT COUNT(*)::int AS total_products, COALESCE(SUM(stock), 0)::int AS total_stock
              FROM products WHERE seller_id = ?`,
             [sellerId]
         );
         const [[reviewStats]]: any = await db.execute(
-            `SELECT COUNT(r.id) AS total_reviews, COALESCE(ROUND(AVG(r.rating), 1), 0) AS avg_rating
+            `SELECT COUNT(r.id)::int AS total_reviews, COALESCE(ROUND(AVG(r.rating), 1), 0) AS avg_rating
              FROM reviews r JOIN products p ON p.id = r.product_id WHERE p.seller_id = ?`,
             [sellerId]
         );
         const [[salesStats]]: any = await db.execute(
-            `SELECT COUNT(DISTINCT o.id) AS total_sales
+            `SELECT COUNT(DISTINCT o.id)::int AS total_sales
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
@@ -81,17 +81,17 @@ const sellerRepository = {
     getRevenueByMonth: async (sellerId: number) => {
         const [rows] = await db.execute(
             `SELECT 
-                DATE_FORMAT(o.created_at, '%Y-%m')               AS month,
-                DATE_FORMAT(o.created_at, '%b/%y')               AS label,
+                to_char(date_trunc('month', o.created_at), 'YYYY-MM') AS month,
+                to_char(date_trunc('month', o.created_at), 'Mon/YY')  AS label,
                 ROUND(SUM(oi.price * oi.quantity), 2)            AS revenue,
-                COUNT(DISTINCT o.id)                             AS orders
+                COUNT(DISTINCT o.id)::int                        AS orders
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
              WHERE p.seller_id = ?
                AND o.status = 'paid'
-               AND o.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-             GROUP BY DATE_FORMAT(o.created_at, '%Y-%m'), DATE_FORMAT(o.created_at, '%b/%y')
+               AND o.created_at >= CURRENT_DATE - INTERVAL '12 months'
+             GROUP BY date_trunc('month', o.created_at)
              ORDER BY month ASC`,
             [sellerId]
         );
@@ -102,7 +102,7 @@ const sellerRepository = {
         const [rows] = await db.execute(
             `SELECT 
                 p.name,
-                COALESCE(SUM(oi.quantity), 0)                      AS units_sold,
+                COALESCE(SUM(oi.quantity), 0)::int                 AS units_sold,
                 COALESCE(ROUND(SUM(oi.price * oi.quantity), 2), 0) AS revenue
              FROM order_items oi
              JOIN orders   o ON o.id  = oi.order_id
@@ -120,7 +120,7 @@ const sellerRepository = {
         const [rows] = await db.execute(
             `SELECT 
                 o.status,
-                COUNT(DISTINCT o.id) AS count
+                COUNT(DISTINCT o.id)::int AS count
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
@@ -135,7 +135,7 @@ const sellerRepository = {
         const [rows] = await db.execute(
             `SELECT 
                 r.rating,
-                COUNT(*) AS count
+                COUNT(*)::int AS count
              FROM reviews r
              JOIN products p ON p.id = r.product_id
              WHERE p.seller_id = ?
@@ -151,7 +151,7 @@ const sellerRepository = {
         const [[total]]: any = await db.execute(
             `SELECT 
                 COALESCE(ROUND(SUM(oi.price * oi.quantity), 2), 0) AS revenue_total,
-                COUNT(DISTINCT o.id)                               AS orders_paid
+                COUNT(DISTINCT o.id)::int                          AS orders_paid
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
@@ -162,19 +162,18 @@ const sellerRepository = {
         const [[month]]: any = await db.execute(
             `SELECT 
                 COALESCE(ROUND(SUM(oi.price * oi.quantity), 2), 0) AS revenue_month,
-                COUNT(DISTINCT o.id)                               AS orders_month
+                COUNT(DISTINCT o.id)::int                          AS orders_month
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
              WHERE p.seller_id = ?
                AND o.status = 'paid'
-               AND MONTH(o.created_at) = MONTH(NOW())
-               AND YEAR(o.created_at)  = YEAR(NOW())`,
+               AND date_trunc('month', o.created_at) = date_trunc('month', CURRENT_DATE::timestamp)`,
             [sellerId]
         );
 
         const [[pending]]: any = await db.execute(
-            `SELECT COUNT(DISTINCT o.id) AS orders_pending
+            `SELECT COUNT(DISTINCT o.id)::int AS orders_pending
              FROM orders o
              JOIN order_items oi ON oi.order_id = o.id
              JOIN products p     ON p.id = oi.product_id
@@ -182,7 +181,7 @@ const sellerRepository = {
             [sellerId]
         );
 
-        // Ticket médio calculado no JS — evita subquery aninhada com mysql2
+        // Ticket médio calculado no JS para manter a consulta simples.
         const [orderTotals]: any = await db.execute(
             `SELECT COALESCE(SUM(oi.price * oi.quantity), 0) AS order_total
              FROM orders o
