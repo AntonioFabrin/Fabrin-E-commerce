@@ -39,3 +39,26 @@ export const uploadProductImage = async (file: Express.Multer.File, sellerId: nu
     const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
     return data.publicUrl;
 };
+
+export const deleteProductImageByUrl = async (imageUrl?: string | null) => {
+    if (!imageUrl || !supabase || !process.env.SUPABASE_URL) {
+        return;
+    }
+
+    const bucket = process.env.SUPABASE_PRODUCTS_BUCKET || DEFAULT_PRODUCT_BUCKET;
+    const publicPrefix = `${process.env.SUPABASE_URL.replace(/\/+$/, '')}/storage/v1/object/public/${bucket}/`;
+
+    if (!imageUrl.startsWith(publicPrefix)) {
+        return;
+    }
+
+    const objectPath = decodeURIComponent(imageUrl.slice(publicPrefix.length));
+    if (!objectPath) {
+        return;
+    }
+
+    const { error } = await supabase.storage.from(bucket).remove([objectPath]);
+    if (error) {
+        throw new Error(`Erro ao remover imagem antiga do Supabase Storage: ${error.message}`);
+    }
+};

@@ -1,6 +1,14 @@
 import { Request, Response } from 'express';
 import productService from '../services/productService';
-import { uploadProductImage } from '../services/storageService';
+import { deleteProductImageByUrl, uploadProductImage } from '../services/storageService';
+
+const cleanupProductImage = async (imageUrl?: string | null) => {
+    try {
+        await deleteProductImageByUrl(imageUrl);
+    } catch (error) {
+        console.error('Falha ao remover imagem antiga do produto:', error);
+    }
+};
 
 const productController = {
     create: async (req: Request, res: Response) => {
@@ -99,6 +107,7 @@ const productController = {
             }
 
             const product = await productService.getProductById(id);
+            const previousImageUrl = product.image_url;
 
             if (!product) {
                 return res.status(404).json({ erro: "Produto não encontrado." });
@@ -115,6 +124,10 @@ const productController = {
             }
 
             await productService.updateProduct(id, productData);
+            if (productData.image_url && previousImageUrl !== productData.image_url) {
+                await cleanupProductImage(previousImageUrl);
+            }
+
             return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
         } catch (error: any) {
             return res.status(400).json({ erro: error.message });
@@ -139,6 +152,8 @@ const productController = {
             }
 
             await productService.deleteProduct(id);
+            await cleanupProductImage(product.image_url);
+
             return res.status(200).json({ mensagem: "Produto removido da loja com sucesso!" });
         } catch (error: any) {
             return res.status(400).json({ erro: error.message });
