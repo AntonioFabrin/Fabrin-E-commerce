@@ -150,7 +150,19 @@ function ProductsPageContent() {
 
             return (
               <div key={product.id}
-                style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'all 0.25s', position: 'relative' }}
+                role="button"
+                tabIndex={0}
+                onClick={e => {
+                  if ((e.target as HTMLElement).closest('button,a')) return;
+                  router.push(`/products/${product.id}`);
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/products/${product.id}`);
+                  }
+                }}
+                style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'all 0.25s', position: 'relative', cursor: 'pointer' }}
                 onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'var(--lilac)'; el.style.boxShadow = '0 12px 40px rgba(124,58,237,0.12)'; el.style.transform = 'translateY(-3px)'; }}
                 onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.boxShadow = 'none'; el.style.transform = 'translateY(0)'; }}
               >
