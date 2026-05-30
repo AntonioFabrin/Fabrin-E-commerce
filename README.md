@@ -173,7 +173,9 @@ cp .env.local.example .env.local   # ou crie manualmente
 Conteúdo do `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3333
+BACKEND_INTERNAL_URL=http://127.0.0.1:3333
+# Local: deixe NEXT_PUBLIC_API_URL sem definir para o navegador usar /api pelo Next.
+# NEXT_PUBLIC_API_URL=http://127.0.0.1:3333
 ```
 
 ### 4. Crie as tabelas no banco
@@ -186,7 +188,7 @@ Execute o arquivo `src/database/setup_completo.sql` no seu cliente PostgreSQL.
 # Na raiz do projeto
 npm install
 npm run dev
-# → http://localhost:3333
+# -> http://127.0.0.1:3333
 ```
 
 ### 6. Instale dependências e rode o frontend
@@ -228,7 +230,8 @@ npm run dev
 
 | Variável | Descrição |
 |---|---|
-| `NEXT_PUBLIC_API_URL` | URL base do backend |
+| `BACKEND_INTERNAL_URL` | URL usada pelo Next para encaminhar `/api/*` e `/uploads/*` ao backend local |
+| `NEXT_PUBLIC_API_URL` | Opcional. URL pública do backend quando o frontend precisa chamar uma API externa ao próprio domínio |
 
 ---
 
@@ -338,7 +341,7 @@ O projeto agora inclui `docker-compose.yml` com:
 - `db`: PostgreSQL 16 com scripts de schema em `src/database/`
 - `backend`: API Node/Express
 - `frontend`: Next.js
-- `frontend` usa `NEXT_PUBLIC_API_URL` para chamadas da UI e `BACKEND_INTERNAL_URL` para rewrites internas no container
+- `frontend` usa `/api/*` na mesma origem e `BACKEND_INTERNAL_URL` para rewrites internas no container
 
 ### Subir tudo
 
@@ -349,7 +352,7 @@ docker compose up --build
 ### Portas
 
 - Frontend: `http://localhost:3000`
-- Backend: `http://localhost:3333`
+- Backend: `http://127.0.0.1:3333`
 - PostgreSQL: `localhost:5432`
 
 ### Observação

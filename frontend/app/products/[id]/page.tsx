@@ -67,9 +67,14 @@ export default function EditProductPage() {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      await api.put(`/api/products/${productId}`, {
-        name, description, price: Number(price), stock: Number(stock),
-      });
+      const payload = new FormData();
+      payload.append('name', name);
+      payload.append('description', description);
+      payload.append('price', String(Number(price)));
+      payload.append('stock', String(Number(stock)));
+      if (imageFile) payload.append('image', imageFile);
+
+      await api.put(`/api/products/${productId}`, payload);
       router.push('/products');
     } catch (err) {
       setError(extractErrorMessage(err, 'Erro ao atualizar produto.'));

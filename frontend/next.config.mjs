@@ -3,7 +3,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+const resolveBackendUrl = () => {
+  const configuredUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+  return 'http://127.0.0.1:3333';
+};
+
+const backendUrl = resolveBackendUrl();
 const apiUrl = new URL(backendUrl);
 
 const apiRemotePattern = {
@@ -17,6 +25,8 @@ if (apiUrl.port) {
 }
 
 const nextConfig = {
+  allowedDevOrigins: ['localhost', '127.0.0.1', '26.36.11.61'],
+
   turbopack: {
     root: __dirname,
   },
@@ -26,6 +36,10 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: '/uploads/:path*',
+        destination: `${backendUrl}/uploads/:path*`,
       },
     ];
   },

@@ -88,7 +88,11 @@ INSERT INTO users (name, email, password, role)
 VALUES (
     'Admin',
     'admin@fabrinmarket.com',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2b$10$cCiru23si.gcSz3ogTW4EeSP.Ri8aRBBhkVOYgW62EIfH1Dm.gUyq',
     'admin'
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE
+SET
+    name = EXCLUDED.name,
+    password = EXCLUDED.password,
+    role = EXCLUDED.role;

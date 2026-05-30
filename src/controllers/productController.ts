@@ -110,6 +110,10 @@ const productController = {
                 });
             }
 
+            if (req.file) {
+                productData.image_url = await uploadProductImage(req.file, userData.id);
+            }
+
             await productService.updateProduct(id, productData);
             return res.status(200).json({ mensagem: "Produto atualizado com sucesso no Marketplace!" });
         } catch (error: any) {

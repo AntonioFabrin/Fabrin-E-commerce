@@ -47,13 +47,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3333
         BACKEND_INTERNAL_URL: http://backend:3333
     restart: unless-stopped
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3333
       BACKEND_INTERNAL_URL: http://backend:3333
     ports:
       - "3000:3000"

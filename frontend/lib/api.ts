@@ -1,7 +1,19 @@
 import axios from 'axios';
 import { getToken } from '../hooks/useAuth';
 
-export const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+const normalizeApiUrl = (url: string) => url.replace(/\/+$/, '');
+
+const resolveApiUrl = () => {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  if (configuredUrl) {
+    return normalizeApiUrl(configuredUrl);
+  }
+
+  return '';
+};
+
+export const API = resolveApiUrl();
 
 /** Extrai a mensagem de erro de qualquer resposta/exceção do axios de forma segura. */
 export function extractErrorMessage(err: unknown, fallback = 'Erro inesperado. Tente novamente.'): string {
@@ -16,7 +28,10 @@ export function extractErrorMessage(err: unknown, fallback = 'Erro inesperado. T
 }
 
 /** Instância do axios já com baseURL e token injetados automaticamente. */
-const api = axios.create({ baseURL: API });
+const api = axios.create({
+  baseURL: API,
+  timeout: 15000,
+});
 
 api.interceptors.request.use(config => {
   const token = getToken();
