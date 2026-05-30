@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import api, { extractErrorMessage } from '../../lib/api';
 import { setRouteAuthCookies } from '../../lib/authCookies';
+import { notifyAuthChanged } from '../../hooks/useAuth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,6 +31,7 @@ export default function LoginPage() {
           JSON.parse(atob(res.data.token.split('.')[1]))?.role || 'customer';
         // Cookies lidos pelo proxy.ts no servidor
         setRouteAuthCookies(role);
+        notifyAuthChanged();
         // Redireciona por role
         if (role === 'customer') {
           router.push('/account');

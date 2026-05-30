@@ -10,6 +10,8 @@ export interface AuthUser {
   name?: string;
 }
 
+const AUTH_CHANGED_EVENT = 'fabrin:auth-changed';
+
 /** Decodifica o payload do JWT apenas para uso de UI (sem verificar assinatura).
  *  A validação real sempre acontece no backend via authMiddleware.
  *  Injeta o 'name' do localStorage (salvo no login), pois o JWT não o inclui. */
@@ -30,10 +32,16 @@ export function getToken(): string | null {
   return localStorage.getItem('@Ecommerce:token');
 }
 
+export function notifyAuthChanged() {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
+
 export function logout(router?: ReturnType<typeof useRouter>) {
   localStorage.removeItem('@Ecommerce:token');
   localStorage.removeItem('@Ecommerce:name');
   clearRouteAuthCookies();
+  notifyAuthChanged();
   if (router) router.push('/login');
 }
 
@@ -43,8 +51,21 @@ export function useCurrentUser(): AuthUser | null {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    const token = getToken();
-    if (token) setUser(decodeJwtPayload(token));
+    const syncUser = () => {
+      const token = getToken();
+      setUser(token ? decodeJwtPayload(token) : null);
+    };
+
+    syncUser();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncUser);
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('focus', syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncUser);
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('focus', syncUser);
+    };
   }, []);
 
   return user;

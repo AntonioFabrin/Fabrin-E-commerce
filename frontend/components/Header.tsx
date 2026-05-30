@@ -1,30 +1,42 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import CartHeaderIcon from './CartHeaderIcon';
 import { useCurrentUser, logout } from '../hooks/useAuth';
 
 export default function Header() {
   const currentUser = useCurrentUser();
-  const router      = useRouter();
-  const role        = currentUser?.role;
-  const isSeller    = role === 'seller' || role === 'admin';
-  const isCustomer  = role === 'customer';
-  const isLoggedIn  = !!currentUser;
+  const router = useRouter();
+  const pathname = usePathname();
+  const role = currentUser?.role;
+  const isSeller = role === 'seller' || role === 'admin';
+  const isCustomer = role === 'customer';
+  const isLoggedIn = !!currentUser;
+  const firstName = currentUser?.name?.split(' ')[0] || currentUser?.email?.split('@')[0] || '';
+  const initial = firstName.slice(0, 1).toUpperCase() || 'U';
+  const accountHref = isSeller ? '/dashboard' : '/account';
+  const roleLabel = role === 'admin' ? 'Admin' : role === 'seller' ? 'Vendedor' : 'Cliente';
 
   return (
     <header style={{
       background: 'var(--royal)',
       borderBottom: '1px solid rgba(196,160,255,0.12)',
-      position: 'sticky', top: 0, zIndex: 50,
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
     }}>
       <div style={{
-        maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        maxWidth: 1200,
+        margin: '0 auto',
+        padding: '0 24px',
+        minHeight: 64,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 18,
       }}>
-        {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <img
             src="/app-icon.svg"
             alt=""
@@ -37,52 +49,103 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Nav */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
+          <NavLink href="/products" label="Loja" active={pathname.startsWith('/products')} />
 
-          {/* Loja — todos */}
-          <NavLink href="/products" label="Loja" />
-
-          {/* Pedidos — todos logados */}
-          {isLoggedIn && <NavLink href="/orders" label="Pedidos" />}
-
-          {/* Minha Conta — apenas customer */}
-          {isCustomer && <NavLink href="/account" label="Minha Conta" />}
-
-          {/* Dashboard — apenas seller/admin */}
-          {isSeller && <NavLink href="/dashboard" label="Dashboard" />}
+          {isLoggedIn && <NavLink href="/orders" label="Pedidos" active={pathname.startsWith('/orders')} />}
+          {isCustomer && <NavLink href="/account" label="Minha Conta" active={pathname.startsWith('/account')} />}
+          {isSeller && <NavLink href="/dashboard" label="Painel" active={pathname.startsWith('/dashboard')} />}
+          {!isLoggedIn && <NavLink href="/register" label="Criar conta" active={pathname.startsWith('/register')} />}
 
           <div style={{ width: 1, height: 20, background: 'rgba(196,160,255,0.2)', margin: '0 8px' }} />
 
-          {/* Carrinho */}
           <CartHeaderIcon />
 
-          {/* Sair / Entrar */}
           {isLoggedIn ? (
-            <button
-              onClick={() => logout(router)}
-              style={{
-                marginLeft: 4,
-                background: 'rgba(220,38,38,0.15)',
-                border: '1px solid rgba(220,38,38,0.25)',
-                borderRadius: 'var(--radius-pill)',
-                padding: '6px 14px',
-                fontSize: 12, fontWeight: 600, color: '#FCA5A5',
-                cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(220,38,38,0.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(220,38,38,0.15)'; }}
-            >
-              Sair
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
+              <Link
+                href={accountHref}
+                title={`Abrir ${isSeller ? 'painel' : 'minha conta'}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 9,
+                  minWidth: 0,
+                  maxWidth: 220,
+                  textDecoration: 'none',
+                  background: 'rgba(196,160,255,0.12)',
+                  border: '1px solid rgba(196,160,255,0.22)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '5px 10px 5px 5px',
+                  color: '#E8D5FF',
+                }}
+              >
+                <span style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, var(--violet), var(--lavender))',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}>
+                  {initial}
+                </span>
+                <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {firstName}
+                  </span>
+                  <span style={{ fontSize: 10, color: '#9D7EC9', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    {roleLabel}
+                  </span>
+                </span>
+              </Link>
+
+              <button
+                onClick={() => logout(router)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(196,160,255,0.35)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '7px 14px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#C4A0FF',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-body)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(196,160,255,0.1)';
+                  (e.currentTarget as HTMLElement).style.color = '#F3E8FF';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.color = '#C4A0FF';
+                }}
+              >
+                Sair
+              </button>
+            </div>
           ) : (
             <Link href="/login" style={{ textDecoration: 'none', marginLeft: 4 }}>
-              <button style={{
-                background: 'var(--violet)', border: 'none',
-                borderRadius: 'var(--radius-pill)', padding: '6px 16px',
-                fontSize: 12, fontWeight: 600, color: '#F3E8FF',
-                cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.2s',
-              }}
+              <button
+                style={{
+                  background: 'var(--violet)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '7px 17px',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#F3E8FF',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-body)',
+                  transition: 'all 0.2s',
+                }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--grape)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--violet)'; }}
               >
@@ -96,17 +159,22 @@ export default function Header() {
   );
 }
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({ href, label, active = false }: { href: string; label: string; active?: boolean }) {
   const [hovered, setHovered] = React.useState(false);
+
   return (
-    <Link href={href} style={{
-      color: hovered ? '#E8D5FF' : '#9D7EC9',
-      fontSize: 13, fontWeight: 500,
-      padding: '6px 14px', borderRadius: 'var(--radius-pill)',
-      textDecoration: 'none',
-      background: hovered ? 'rgba(196,160,255,0.1)' : 'transparent',
-      transition: 'all 0.2s',
-    }}
+    <Link
+      href={href}
+      style={{
+        color: active || hovered ? '#F3E8FF' : '#9D7EC9',
+        fontSize: 13,
+        fontWeight: active ? 700 : 500,
+        padding: '6px 14px',
+        borderRadius: 'var(--radius-pill)',
+        textDecoration: 'none',
+        background: active ? 'rgba(124,58,237,0.22)' : hovered ? 'rgba(196,160,255,0.1)' : 'transparent',
+        transition: 'all 0.2s',
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >

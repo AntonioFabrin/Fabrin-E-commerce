@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRequireAuth, logout } from '../../hooks/useAuth';
+import { notifyAuthChanged, useRequireAuth, logout } from '../../hooks/useAuth';
 import api, { extractErrorMessage } from '../../lib/api';
 import { getImageUrl } from '../../lib/images';
 import { Button } from '../../components/ui/Button';
@@ -126,6 +126,7 @@ export default function AccountPage() {
       await api.put(`/api/${user!.id}`, { name, email });
       // Atualiza o nome no localStorage para o header refletir imediatamente
       localStorage.setItem('@Ecommerce:name', name);
+      notifyAuthChanged();
       toastSuccess('Perfil atualizado com sucesso!');
       setEditMode(false);
     } catch (err) {
