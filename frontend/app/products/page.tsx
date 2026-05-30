@@ -233,6 +233,19 @@ function ProductsPageContent() {
                       </button>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button onClick={e => { e.stopPropagation(); router.push(`/products/${product.id}`); }}
+                          style={{
+                            width: '100%', padding: '10px',
+                            background: '#fff',
+                            border: '1px solid var(--lilac)',
+                            borderRadius: 'var(--radius-pill)',
+                            color: 'var(--violet)',
+                            fontSize: 13, fontWeight: 700,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}>
+                          Ver detalhes
+                        </button>
                         <button disabled={product.stock === 0} onClick={() => product.stock > 0 && handleAddToCart(product)}
                           style={{
                             width: '100%', padding: '10px',
