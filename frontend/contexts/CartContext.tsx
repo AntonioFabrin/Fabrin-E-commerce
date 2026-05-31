@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { AUTH_CHANGED_EVENT, getToken } from '../hooks/useAuth';
 
 export interface CartItem {
   id: number;
@@ -25,28 +26,75 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const STORAGE_KEY = '@FabrinMarket:cart';
+const GUEST_STORAGE_KEY = '@FabrinMarket:cart:guest';
+const LEGACY_STORAGE_KEY = '@FabrinMarket:cart';
+
+const getCartStorageKey = () => {
+  const token = getToken();
+
+  if (!token) {
+    return GUEST_STORAGE_KEY;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload?.id ? `@FabrinMarket:cart:user:${payload.id}` : GUEST_STORAGE_KEY;
+  } catch {
+    return GUEST_STORAGE_KEY;
+  }
+};
+
+const readCartItems = (key: string): CartItem[] => {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) return JSON.parse(stored);
+
+    if (key === GUEST_STORAGE_KEY) {
+      const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (legacyStored) {
+        localStorage.setItem(GUEST_STORAGE_KEY, legacyStored);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+        return JSON.parse(legacyStored);
+      }
+    }
+  } catch { /* silencia */ }
+
+  return [];
+};
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [storageKey, setStorageKey] = useState(GUEST_STORAGE_KEY);
 
-  // Carrega do localStorage apenas no cliente
+  // Carrega do localStorage apenas no cliente e troca de carrinho ao trocar usuario.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setItems(JSON.parse(stored));
-    } catch { /* silencia */ }
-    setHydrated(true);
+    const loadCartForCurrentUser = () => {
+      const nextStorageKey = getCartStorageKey();
+      setStorageKey(nextStorageKey);
+      setItems(readCartItems(nextStorageKey));
+      setHydrated(true);
+    };
+
+    loadCartForCurrentUser();
+    window.addEventListener(AUTH_CHANGED_EVENT, loadCartForCurrentUser);
+    window.addEventListener('storage', loadCartForCurrentUser);
+    window.addEventListener('focus', loadCartForCurrentUser);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, loadCartForCurrentUser);
+      window.removeEventListener('storage', loadCartForCurrentUser);
+      window.removeEventListener('focus', loadCartForCurrentUser);
+    };
   }, []);
 
   // Persiste no localStorage toda vez que o carrinho muda
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(storageKey, JSON.stringify(items));
     } catch { /* silencia */ }
-  }, [items, hydrated]);
+  }, [items, hydrated, storageKey]);
 
   const addItem = useCallback((product: Omit<CartItem, 'quantity'>) => {
     setItems(prev => {

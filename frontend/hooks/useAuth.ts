@@ -10,7 +10,7 @@ export interface AuthUser {
   name?: string;
 }
 
-const AUTH_CHANGED_EVENT = 'fabrin:auth-changed';
+export const AUTH_CHANGED_EVENT = 'fabrin:auth-changed';
 
 /** Decodifica o payload do JWT apenas para uso de UI (sem verificar assinatura).
  *  A validação real sempre acontece no backend via authMiddleware.
