@@ -110,7 +110,7 @@ export default function ProductPage() {
     </div>
   );
 
-  if (error || !product) return (
+  if (!product) return (
     <div style={{ maxWidth: 520, margin: '80px auto', padding: 24, textAlign: 'center' }}>
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: 'var(--royal)', marginBottom: 10 }}>Produto nao encontrado</h1>
       <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>{error || 'Esse anuncio nao esta disponivel.'}</p>

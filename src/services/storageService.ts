@@ -33,6 +33,10 @@ export const uploadProductImage = async (file: Express.Multer.File, sellerId: nu
         });
 
     if (error) {
+        if (error.message.toLowerCase().includes('invalid compact jws')) {
+            throw new Error('Chave do Supabase Storage invalida. Confira SUPABASE_SERVICE_ROLE_KEY no backend da Vercel e cole a service_role/secret key completa, sem espacos ou quebras de linha.');
+        }
+
         throw new Error(`Erro ao enviar imagem para o Supabase Storage: ${error.message}`);
     }
 
