@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/Button';
 import { useRequireAuth, logout } from '../../hooks/useAuth';
-import api, { extractErrorMessage } from '../../lib/api';
+import api from '../../lib/api';
 import { useRouter } from 'next/navigation';
 
 function StatCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent: string }) {
@@ -64,7 +64,7 @@ export default function DashboardPage() {
         setRevenueMonth(`R$ ${Number(rev).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`);
       }
     }).finally(() => setDataLoading(false));
-  }, [authLoading]);
+  }, [authLoading, router, user?.role]);
 
   if (authLoading || dataLoading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, flexDirection: 'column', gap: 16 }}>

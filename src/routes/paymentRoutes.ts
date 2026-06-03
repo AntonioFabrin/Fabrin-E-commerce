@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import paymentController from '../controllers/paymentController';
-import { authMiddleware } from '../middlewares/authMiddleware';
+import { optionalAuthMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
 
 // Produto único — tenta pegar token mas não exige
-router.post('/preference', authMiddleware, paymentController.createPreference);
+router.post('/preference', optionalAuthMiddleware, paymentController.createPreference);
 
 // Carrinho com múltiplos itens — tenta pegar token mas não exige
-router.post('/preference-cart', authMiddleware, paymentController.createPreferenceCart);
+router.post('/preference-cart', optionalAuthMiddleware, paymentController.createPreferenceCart);
 
 // Webhook público — o MP chama sem autenticação
 router.post('/webhook', paymentController.webhook);

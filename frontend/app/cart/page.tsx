@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
 import axios from 'axios'; // mantido apenas para o ViaCEP (API externa)
 import Link from 'next/link';
 import { useCart } from '../../contexts/CartContext';
@@ -18,7 +17,6 @@ const Spin = () => (
 
 function CartItems({ onNext }: { onNext: () => void }) {
   const { items, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
-  const router = useRouter();
 
   if (!items.length) return (
     <div style={{ maxWidth: 560, margin: '80px auto', padding: 24, textAlign: 'center' }}>

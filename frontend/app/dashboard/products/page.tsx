@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '../../../components/ui/Button';
 import { useRequireAuth } from '../../../hooks/useAuth';
 import api, { extractErrorMessage } from '../../../lib/api';
-import type { Analytics, Kpis, MonthData, TopProduct, StatusData, RatingData } from '../../../types/api';
+import type { Analytics, MonthData, TopProduct, StatusData, RatingData } from '../../../types/api';
 
 const Spin = () => (
   <>
@@ -12,6 +12,9 @@ const Spin = () => (
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
   </>
 );
+
+const STATUS_LABEL: Record<string, string> = { paid: 'Pago', pending: 'Pendente', cancelled: 'Cancelado', approved: 'Aprovado' };
+const STATUS_COLOR: Record<string, string> = { paid: '#059669', pending: '#D97706', cancelled: '#DC2626', approved: '#059669' };
 
 function KpiCard({ label, value, sub, accent, icon }: { label: string; value: string; sub?: string; accent: string; icon: string }) {
   return (
@@ -164,9 +167,6 @@ function OrderStatusChart({ data }: { data: StatusData[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<any>(null);
 
-  const statusLabel: Record<string, string> = { paid: 'Pago', pending: 'Pendente', cancelled: 'Cancelado', approved: 'Aprovado' };
-  const statusColor: Record<string, string> = { paid: '#059669', pending: '#D97706', cancelled: '#DC2626', approved: '#059669' };
-
   useEffect(() => {
     if (!canvasRef.current) return;
     const load = async () => {
@@ -178,10 +178,10 @@ function OrderStatusChart({ data }: { data: StatusData[] }) {
       chartRef.current = new Chart(canvasRef.current!, {
         type: 'doughnut',
         data: {
-          labels: hasData ? data.map(d => statusLabel[d.status] || d.status) : ['Sem pedidos'],
+          labels: hasData ? data.map(d => STATUS_LABEL[d.status] || d.status) : ['Sem pedidos'],
           datasets: [{
             data: hasData ? data.map(d => Number(d.count)) : [1],
-            backgroundColor: hasData ? data.map(d => statusColor[d.status] || '#8B6BA8') : ['#EDE8F5'],
+            backgroundColor: hasData ? data.map(d => STATUS_COLOR[d.status] || '#8B6BA8') : ['#EDE8F5'],
             borderColor: '#fff', borderWidth: 3, hoverOffset: 6,
           }]
         },

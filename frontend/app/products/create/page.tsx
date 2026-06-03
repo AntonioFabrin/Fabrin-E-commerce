@@ -16,7 +16,7 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
 
 export default function CreateProductPage() {
   const router = useRouter();
-  const { loading: authLoading } = useRequireAuth();
+  useRequireAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');

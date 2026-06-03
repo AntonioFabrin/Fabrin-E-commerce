@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../components/ui/Button';
 import { StarPicker } from '../../components/ui/Stars';

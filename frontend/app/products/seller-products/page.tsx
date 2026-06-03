@@ -37,11 +37,18 @@ function SellerProductCard({ product }: { product: Product }) {
   const router = useRouter();
   const { addItem, isInCart } = useCart();
   const [added, setAdded] = useState(false);
+  const unavailable = product.stock <= 0;
 
   const handleAdd = () => {
-    addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url, stock: product.stock, seller_id: 0 });
+    if (unavailable) return;
+    addItem({ id: product.id, name: product.name, price: product.price, image_url: product.image_url, stock: product.stock, seller_id: product.seller_id });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handleBuyNow = () => {
+    handleAdd();
+    if (!unavailable) router.push('/cart');
   };
 
   return (
@@ -97,6 +104,7 @@ function SellerProductCard({ product }: { product: Product }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button
+              disabled={unavailable}
               onClick={handleAdd}
               style={{
                 width: '100%', padding: '9px',
@@ -104,23 +112,26 @@ function SellerProductCard({ product }: { product: Product }) {
                 border: `1px solid ${added ? '#059669' : 'var(--border)'}`,
                 borderRadius: 'var(--radius-pill)',
                 color: added ? '#ECFDF5' : 'var(--muted)',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                fontSize: 12, fontWeight: 600, cursor: unavailable ? 'not-allowed' : 'pointer',
                 fontFamily: 'var(--font-body)', transition: 'all 0.2s',
+                opacity: unavailable ? 0.45 : 1,
               }}
             >
               {added ? '✓ Adicionado!' : '🛒 Adicionar ao carrinho'}
             </button>
             <button
-              onClick={() => router.push(`/cart?produto=${product.id}`)}
+              disabled={unavailable}
+              onClick={handleBuyNow}
               style={{
                 width: '100%', padding: '9px',
-                background: 'var(--violet)', border: 'none',
-                borderRadius: 'var(--radius-pill)', color: '#F3E8FF',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                background: unavailable ? 'var(--mist)' : 'var(--violet)', border: 'none',
+                borderRadius: 'var(--radius-pill)', color: unavailable ? 'var(--muted)' : '#F3E8FF',
+                fontSize: 12, fontWeight: 600, cursor: unavailable ? 'not-allowed' : 'pointer',
                 fontFamily: 'var(--font-body)', transition: 'all 0.2s',
+                opacity: unavailable ? 0.5 : 1,
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--grape)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--violet)')}
+              onMouseEnter={e => { if (!unavailable) e.currentTarget.style.background = 'var(--grape)'; }}
+              onMouseLeave={e => { if (!unavailable) e.currentTarget.style.background = 'var(--violet)'; }}
             >Comprar agora →</button>
           </div>
         </div>

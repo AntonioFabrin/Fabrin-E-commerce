@@ -58,6 +58,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
+      className={className}
       disabled={disabled}
       style={{
         ...styles.base,

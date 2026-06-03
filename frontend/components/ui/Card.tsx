@@ -13,6 +13,7 @@ export function Card({
 }) {
   return (
     <div
+      className={className}
       style={{
         background: 'var(--white)',
         border: '1px solid var(--border)',

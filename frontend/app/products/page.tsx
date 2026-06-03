@@ -49,7 +49,7 @@ function ProductsPageContent() {
 
   useEffect(() => {
     if (wasBlocked) toastWarning('Essa área é exclusiva para vendedores.');
-  }, [wasBlocked]);
+  }, [wasBlocked, toastWarning]);
 
   const canEdit = (p: Product) => {
     if (!currentUser) return false;
@@ -62,6 +62,12 @@ function ProductsPageContent() {
     addItem({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, stock: p.stock, seller_id: p.seller_id });
     setAddedMap(prev => ({ ...prev, [p.id]: true }));
     setTimeout(() => setAddedMap(prev => ({ ...prev, [p.id]: false })), 1600);
+  };
+
+  const handleBuyNow = (p: Product) => {
+    if (p.stock <= 0) return;
+    handleAddToCart(p);
+    router.push('/cart');
   };
 
   const handleDelete = async (p: Product) => {
@@ -259,7 +265,7 @@ function ProductsPageContent() {
                           }}>
                           {justAdded ? '✓ Adicionado!' : inCart ? '+ Adicionar mais' : '🛒 Adicionar ao carrinho'}
                         </button>
-                        <button disabled={product.stock === 0} onClick={() => product.stock > 0 && router.push(`/cart?produto=${product.id}`)}
+                        <button disabled={product.stock === 0} onClick={() => handleBuyNow(product)}
                           style={{
                             width: '100%', padding: '10px',
                             background: product.stock === 0 ? 'var(--mist)' : 'var(--violet)',
