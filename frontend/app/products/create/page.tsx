@@ -8,7 +8,7 @@ import { useRequireAuth } from '../../../hooks/useAuth';
 import api, { extractErrorMessage } from '../../../lib/api';
 
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px', marginBottom: 20 }}>
+  <div className="form-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px', marginBottom: 20 }}>
     <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>{title}</p>
     {children}
   </div>
@@ -50,7 +50,7 @@ export default function CreateProductPage() {
   };
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-container product-detail-page" style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
         <Link href="/dashboard" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Dashboard</Link>
         <span>/</span><span>Novo Produto</span>
@@ -79,7 +79,7 @@ export default function CreateProductPage() {
                 onBlur={e => { e.target.style.borderColor = 'var(--mist)'; e.target.style.background = '#F9F5FF'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <Input label="Preço (R$)" type="number" placeholder="299.90" value={price} onChange={e => setPrice(e.target.value)} required />
               <Input label="Estoque" type="number" placeholder="50" value={stock} onChange={e => setStock(e.target.value)} required />
             </div>
@@ -105,7 +105,7 @@ export default function CreateProductPage() {
           {imageFile && <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8, textAlign: 'center' }}>{imageFile.name}</p>}
         </SectionCard>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="form-actions" style={{ display: 'flex', gap: 12 }}>
           <Button type="submit" variant="primary" size="lg" style={{ flex: 1 }} disabled={loading}>
             {loading ? 'Publicando...' : 'Publicar produto →'}
           </Button>

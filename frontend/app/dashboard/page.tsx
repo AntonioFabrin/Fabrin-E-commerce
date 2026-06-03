@@ -75,7 +75,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px' }}>
+    <div className="page-container dashboard-page" style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
@@ -91,16 +91,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 40 }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 40 }}>
         <StatCard label="Produtos cadastrados" value={productCount} icon="📦" accent="#7C3AED" />
         <StatCard label="Pedidos recebidos"    value={orderCount}   icon="🛒" accent="#059669" />
         <StatCard label="Receita este mês"     value={revenueMonth} icon="💰" accent="#D97706" />
       </div>
 
       {/* Ações rápidas */}
-      <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px', marginBottom: 24 }}>
+      <div className="dashboard-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px', marginBottom: 24 }}>
         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>Ações Rápidas</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+        <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <QuickAction href="/products/create"          icon="➕" title="Novo Produto"      desc="Publicar anúncio"       accent="#7C3AED" />
           <QuickAction href="/products/seller-products" icon="📦" title="Meus Produtos"     desc="Gerenciar estoque"      accent="#059669" />
           <QuickAction href="/orders"                   icon="🧾" title="Pedidos"           desc="Compras e vendas"       accent="#D97706" />

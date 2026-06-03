@@ -30,7 +30,7 @@ function CartItems({ onNext }: { onNext: () => void }) {
   );
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-container cart-page" style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
       <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
         <Link href="/products" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Loja</Link>
         <span>/</span><span>Carrinho</span>
@@ -43,17 +43,17 @@ function CartItems({ onNext }: { onNext: () => void }) {
         <button onClick={() => confirm('Limpar carrinho?') && clearCart()} style={{ fontSize: 12, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Limpar tudo</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+      <div className="cart-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {items.map(item => (
-            <div key={item.id} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div key={item.id} className="cart-item" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px', display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-md)', background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                 {item.image_url
                   ? <img src={getImageUrl(item.image_url)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, opacity: 0.4 }}>📦</div>}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, color: 'var(--royal)', fontSize: 14, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
+              <div className="cart-item-info" style={{ flex: 1, minWidth: 0 }}>
+                <p className="cart-item-title" style={{ fontWeight: 600, color: 'var(--royal)', fontSize: 14, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--violet)' }}>R$ {Number(item.price).toFixed(2).replace('.', ',')}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -61,7 +61,7 @@ function CartItems({ onNext }: { onNext: () => void }) {
                 <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--royal)', minWidth: 20, textAlign: 'center' }}>{item.quantity}</span>
                 <button onClick={() => updateQuantity(item.id, Math.min(item.quantity + 1, item.stock))} disabled={item.quantity >= item.stock} style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--mist)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 16, fontWeight: 600, color: 'var(--royal)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: item.quantity >= item.stock ? 0.4 : 1 }}>+</button>
               </div>
-              <div style={{ textAlign: 'right', minWidth: 80 }}>
+              <div className="cart-line-total" style={{ textAlign: 'right', minWidth: 80 }}>
                 <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--royal)', fontSize: 16 }}>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</p>
                 <button onClick={() => removeItem(item.id)} style={{ fontSize: 11, color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>remover</button>
               </div>
@@ -70,7 +70,7 @@ function CartItems({ onNext }: { onNext: () => void }) {
         </div>
 
         {/* Resumo */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
+        <div className="cart-summary" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Resumo do pedido</p>
           {items.map(item => (
             <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
@@ -167,7 +167,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-container cart-page" style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
       <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
         <Link href="/products" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Loja</Link>
         <span>/</span>
@@ -177,7 +177,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 700, color: 'var(--royal)', marginBottom: 6 }}>Dados de Entrega</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 32 }}>Preencha seus dados para finalizar o pedido.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
+      <div className="checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'start' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {error && (
             <div style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-md)', fontSize: 13, color: '#DC2626', display: 'flex', gap: 8 }}>
@@ -189,7 +189,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>👤 Dados Pessoais</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Input label="Nome completo" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="checkout-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <Input label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input label="Telefone" type="tel" placeholder="(44) 99999-9999" value={phone} onChange={e => setPhone(e.target.value)} required />
               </div>
@@ -198,11 +198,11 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
 
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 20 }}>📦 Endereço de Entrega</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginBottom: 12 }}>
+            <div className="checkout-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, marginBottom: 12 }}>
               <Input label={loadingCep ? 'Buscando...' : 'CEP'} placeholder="00000-000" value={cep} onChange={e => setCep(e.target.value)} onBlur={handleCepBlur} maxLength={9} required />
               <Input label="Rua" placeholder="Nome da rua" value={street} onChange={e => setStreet(e.target.value)} required />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div className="checkout-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: 12, marginBottom: 12 }}>
               <Input label="Número" placeholder="123" value={num} onChange={e => setNum(e.target.value)} required />
               <Input label="Bairro" placeholder="Seu bairro" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} required />
               <Input label="Cidade" placeholder="Cidade" value={city} onChange={e => setCity(e.target.value)} required />
@@ -215,7 +215,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
             </SField>
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="checkout-actions" style={{ display: 'flex', gap: 12 }}>
             <Button type="button" variant="ghost" size="lg" style={{ width: 'auto', padding: '13px 24px', flexShrink: 0 }} onClick={onBack}>← Voltar</Button>
             <Button type="submit" variant="primary" size="lg" style={{ flex: 1 }} disabled={submitting}>
               {submitting ? 'Redirecionando...' : '🔒 Finalizar e Pagar'}
@@ -224,7 +224,7 @@ function CartCheckout({ onBack }: { onBack: () => void }) {
         </form>
 
         {/* Resumo lateral */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
+        <div className="checkout-summary" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px', position: 'sticky', top: 88 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 16 }}>Resumo</p>
           {items.map(item => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>

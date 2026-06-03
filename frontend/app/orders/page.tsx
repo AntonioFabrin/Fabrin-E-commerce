@@ -106,7 +106,7 @@ function OrderCard({ order, isSeller = false, onReview, reviewedSet }: {
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--lilac)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(124,58,237,0.08)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
     >
-      <div onClick={() => setOpen(!open)} style={{ padding: '20px 24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: open ? 'var(--cream)' : 'transparent', transition: 'background 0.2s' }}>
+      <div className="order-card-header" onClick={() => setOpen(!open)} style={{ padding: '20px 24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', background: open ? 'var(--cream)' : 'transparent', transition: 'background 0.2s' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, flexShrink: 0, background: 'linear-gradient(135deg, var(--mist), #E9D5FF)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Pedido</span>
@@ -118,7 +118,7 @@ function OrderCard({ order, isSeller = false, onReview, reviewedSet }: {
             <p style={{ fontSize: 12, color: 'var(--muted)' }}>{items.length} item{items.length > 1 ? 's' : ''} · {order.payment_method || 'Mercado Pago'}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div className="order-card-meta" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <StatusBadge status={order.payment_status || order.status} />
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 1 }}>Total</p>
@@ -146,12 +146,12 @@ function OrderCard({ order, isSeller = false, onReview, reviewedSet }: {
               const reviewKey = `${order.id}-${item.product_id}`;
               const alreadyReviewed = reviewedSet?.has(reviewKey);
               return (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                <div key={idx} className="order-item-row" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'var(--cream)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                   <div style={{ width: 52, height: 52, borderRadius: 10, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                     {item.image_url ? <img src={getImageUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📦</div>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--royal)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
+                    <p className="order-item-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--royal)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
                     <p style={{ fontSize: 12, color: 'var(--muted)' }}>{item.quantity}× · R$ {Number(item.price).toFixed(2).replace('.', ',')} cada</p>
                   </div>
                   <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--royal)', flexShrink: 0 }}>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</p>
@@ -239,7 +239,7 @@ function OrdersContent({ authLoading }: { authLoading: boolean }) {
   const currentOrders = tab === 'comprador' ? buyerOrders : sellerOrders;
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 24px' }}>
+    <div className="page-container orders-page" style={{ maxWidth: 860, margin: '0 auto', padding: '48px 24px' }}>
       {reviewModal && <ReviewModal orderId={reviewModal.orderId} productId={reviewModal.productId} productName={reviewModal.productName} onClose={() => setReviewModal(null)} onSuccess={() => handleReviewSuccess(reviewModal.orderId, reviewModal.productId)} />}
       {returnStatus && <PaymentReturn status={returnStatus} />}
 
@@ -253,7 +253,7 @@ function OrdersContent({ authLoading }: { authLoading: boolean }) {
         </Link>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 4, width: 'fit-content', marginBottom: 28 }}>
+      <div className="tabs-row" style={{ display: 'flex', gap: 4, background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 4, width: 'fit-content', marginBottom: 28 }}>
         {(['comprador', 'vendedor'] as const).map(t => {
           const count = (t === 'comprador' ? buyerOrders : sellerOrders).length;
           const active = tab === t;

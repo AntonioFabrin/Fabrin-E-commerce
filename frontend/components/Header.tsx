@@ -26,7 +26,7 @@ export default function Header() {
       top: 0,
       zIndex: 50,
     }}>
-      <div style={{
+      <div className="site-header-inner" style={{
         maxWidth: 1200,
         margin: '0 auto',
         padding: '0 24px',
@@ -36,7 +36,7 @@ export default function Header() {
         justifyContent: 'space-between',
         gap: 18,
       }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <Link href="/" className="site-brand" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <img
             src="/app-icon.svg"
             alt=""
@@ -44,12 +44,12 @@ export default function Header() {
             height={34}
             style={{ display: 'block', borderRadius: 10 }}
           />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: '#E8D5FF', letterSpacing: '-0.5px' }}>
+          <span className="site-brand-text" style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: '#E8D5FF', letterSpacing: '-0.5px' }}>
             Fabrin<span style={{ color: 'var(--lavender)' }}>Market</span>
           </span>
         </Link>
 
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
+        <nav className="site-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
           <NavLink href="/products" label="Loja" active={pathname.startsWith('/products')} />
 
           {isLoggedIn && <NavLink href="/orders" label="Pedidos" active={pathname.startsWith('/orders')} />}
@@ -57,15 +57,16 @@ export default function Header() {
           {isSeller && <NavLink href="/dashboard" label="Painel" active={pathname.startsWith('/dashboard')} />}
           {!isLoggedIn && <NavLink href="/register" label="Criar conta" active={pathname.startsWith('/register')} />}
 
-          <div style={{ width: 1, height: 20, background: 'rgba(196,160,255,0.2)', margin: '0 8px' }} />
+          <div className="site-nav-divider" style={{ width: 1, height: 20, background: 'rgba(196,160,255,0.2)', margin: '0 8px' }} />
 
           <CartHeaderIcon />
 
           {isLoggedIn ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
+            <div className="site-user-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
               <Link
                 href={accountHref}
                 title={`Abrir ${isSeller ? 'painel' : 'minha conta'}`}
+                className="site-user-pill"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -132,7 +133,7 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <Link href="/login" style={{ textDecoration: 'none', marginLeft: 4 }}>
+            <Link href="/login" className="site-login" style={{ textDecoration: 'none', marginLeft: 4 }}>
               <button
                 style={{
                   background: 'var(--violet)',
@@ -165,6 +166,7 @@ function NavLink({ href, label, active = false }: { href: string; label: string;
   return (
     <Link
       href={href}
+      className="site-nav-link"
       style={{
         color: active || hovered ? '#F3E8FF' : '#9D7EC9',
         fontSize: 13,

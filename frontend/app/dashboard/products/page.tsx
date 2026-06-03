@@ -31,7 +31,7 @@ function KpiCard({ label, value, sub, accent, icon }: { label: string; value: st
 
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px 28px' }}>
+    <div className="chart-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px 28px' }}>
       <div style={{ marginBottom: 20 }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--royal)', marginBottom: 3 }}>{title}</h3>
         {subtitle && <p style={{ fontSize: 12, color: 'var(--muted)' }}>{subtitle}</p>}
@@ -281,7 +281,7 @@ export default function AnalyticsPage() {
   const { kpis, revenue_by_month, top_products, orders_by_status, rating_distribution } = data!;
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px' }}>
+    <div className="page-container analytics-page" style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
@@ -301,7 +301,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 32 }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 32 }}>
         <KpiCard label="Receita total" value={fmt(kpis.revenue_total)} sub={`${kpis.orders_paid} pedidos pagos`} accent="#7C3AED" icon="💰" />
         <KpiCard label="Receita este mês" value={fmt(kpis.revenue_month)} sub={`${kpis.orders_month} pedidos no mês`} accent="#059669" icon="📈" />
         <KpiCard label="Ticket médio" value={fmt(kpis.avg_ticket)} sub="por pedido pago" accent="#D97706" icon="🎯" />
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Gráficos — linha superior */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 20, marginBottom: 20 }}>
+      <div className="analytics-wide-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 20, marginBottom: 20 }}>
         <ChartCard title="Receita & Pedidos" subtitle="Últimos 12 meses (apenas pedidos pagos)">
           <RevenueChart data={revenue_by_month} />
         </ChartCard>
@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Gráficos — linha inferior */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
         <ChartCard title="Status dos Pedidos" subtitle="Distribuição de todos os pedidos">
           <OrderStatusChart data={orders_by_status} />
         </ChartCard>

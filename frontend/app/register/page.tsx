@@ -28,14 +28,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{
+    <div className="auth-page" style={{
       minHeight: 'calc(100vh - 136px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24,
       background: 'linear-gradient(160deg, var(--cream) 0%, var(--mist) 100%)',
     }}>
       <div style={{ width: '100%', maxWidth: 460 }}>
-        <div style={{
+        <div className="auth-card" style={{
           background: 'var(--white)', border: '1px solid var(--border)',
           borderRadius: 'var(--radius-xl)', padding: '48px 40px',
           boxShadow: '0 24px 80px rgba(45,20,87,0.12)',
@@ -57,7 +57,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Seletor de role */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
+          <div className="role-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
             {([
               { value: 'customer', icon: '🛍️', title: 'Comprador', desc: 'Quero comprar produtos' },
               { value: 'seller',   icon: '🏪', title: 'Vendedor',  desc: 'Quero vender produtos' },

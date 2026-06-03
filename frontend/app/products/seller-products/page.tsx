@@ -221,10 +221,10 @@ function SellerProfileContent() {
   const { seller, stats, products, recent_reviews } = data;
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 60px' }}>
+    <div className="page-container seller-page" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 60px' }}>
 
       {/* ── Hero do vendedor ── */}
-      <div style={{
+      <div className="seller-hero" style={{
         background: 'linear-gradient(135deg, var(--royal) 0%, var(--plum) 100%)',
         borderRadius: '0 0 var(--radius-xl) var(--radius-xl)',
         padding: '48px 40px 40px',
@@ -255,7 +255,7 @@ function SellerProfileContent() {
         </div>
 
         {/* Estatísticas */}
-        <div style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+        <div className="seller-stats" style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
           {[
             { val: stats.total_products, lbl: 'Produtos' },
             { val: stats.total_sales,    lbl: 'Vendas' },
@@ -293,7 +293,7 @@ function SellerProfileContent() {
         </div>
 
         {products.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+          <div className="seller-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
             {products.map(p => <SellerProductCard key={p.id} product={p} />)}
           </div>
         ) : (
@@ -341,14 +341,14 @@ function SellerProfileContent() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          <div className="reviews-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {recent_reviews.map(r => <ReviewCard key={r.id} review={r} />)}
           </div>
         </div>
       )}
 
       {/* ── CTA final ── */}
-      <div style={{
+      <div className="responsive-actions" style={{
         marginTop: 52, background: 'linear-gradient(135deg, var(--royal), var(--plum))',
         borderRadius: 'var(--radius-xl)', padding: '36px 32px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

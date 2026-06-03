@@ -6,7 +6,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <div style={{
+      <div className="home-hero" style={{
         background: 'linear-gradient(135deg, var(--royal) 0%, var(--plum) 60%, #3B0764 100%)',
         padding: '80px 24px',
         textAlign: 'center',
@@ -26,7 +26,7 @@ export default function HomePage() {
             letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 24,
           }}>✦ Marketplace Premium</div>
 
-          <h1 style={{
+          <h1 className="home-hero-title" style={{
             fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 700,
             color: '#F3E8FF', lineHeight: 1.1, marginBottom: 16,
           }}>
@@ -67,7 +67,7 @@ export default function HomePage() {
 
       {/* Stats */}
       <div style={{ background: 'var(--plum)', padding: '24px' }}>
-        <div style={{
+        <div className="home-stats-grid" style={{
           maxWidth: 900, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0,
         }}>
@@ -77,7 +77,7 @@ export default function HomePage() {
             { val: '4.9 ★', lbl: 'Avaliação média' },
             { val: '100%', lbl: 'Pagamento seguro' },
           ].map((s, i) => (
-            <div key={i} style={{ textAlign: 'center', padding: '8px 16px', borderRight: i < 3 ? '1px solid rgba(196,160,255,0.15)' : 'none' }}>
+            <div key={i} className="home-stat" style={{ textAlign: 'center', padding: '8px 16px', borderRight: i < 3 ? '1px solid rgba(196,160,255,0.15)' : 'none' }}>
               <p style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: '#E8D5FF', marginBottom: 2 }}>{s.val}</p>
               <p style={{ fontSize: 11, color: '#9D7EC9', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.lbl}</p>
             </div>
@@ -86,7 +86,7 @@ export default function HomePage() {
       </div>
 
       {/* Features */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '72px 24px' }}>
+      <div className="home-section" style={{ maxWidth: 1100, margin: '0 auto', padding: '72px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 34, fontWeight: 700, color: 'var(--royal)', marginBottom: 10 }}>
             Por que o FabrinMarket?
@@ -118,7 +118,7 @@ export default function HomePage() {
       </div>
 
       {/* CTA final */}
-      <div style={{
+      <div className="home-cta" style={{
         background: 'linear-gradient(135deg, var(--royal), var(--plum))',
         padding: '64px 24px', textAlign: 'center', margin: '0 24px 48px', borderRadius: 'var(--radius-xl)',
         maxWidth: 1100 - 48, marginLeft: 'auto', marginRight: 'auto',

@@ -124,14 +124,14 @@ export default function ProductPage() {
     const unavailable = product.stock <= 0;
 
     return (
-      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '40px 24px 56px' }}>
+      <div className="page-container product-detail-page" style={{ maxWidth: 1120, margin: '0 auto', padding: '40px 24px 56px' }}>
         <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 28 }}>
           <Link href="/products" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Loja</Link>
           <span>/</span>
           <span>{product.name}</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(320px, 0.9fr)', gap: 32, alignItems: 'start' }}>
+        <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) minmax(320px, 0.9fr)', gap: 32, alignItems: 'start' }}>
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
             <div style={{ aspectRatio: '1 / 1', background: 'var(--mist)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {imageUrl ? (
@@ -142,11 +142,11 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <section style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 30 }}>
+          <section className="product-detail-section" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 30 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: unavailable ? '#DC2626' : '#059669', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
               {unavailable ? 'Indisponivel' : `${product.stock} em estoque`}
             </p>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, lineHeight: 1.15, color: 'var(--royal)', marginBottom: 12 }}>
+            <h1 className="product-detail-name" style={{ fontFamily: 'var(--font-display)', fontSize: 34, lineHeight: 1.15, color: 'var(--royal)', marginBottom: 12 }}>
               {product.name}
             </h1>
             <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, marginBottom: 22 }}>
@@ -155,7 +155,7 @@ export default function ProductPage() {
 
             <div style={{ borderTop: '1px solid var(--mist)', borderBottom: '1px solid var(--mist)', padding: '20px 0', marginBottom: 22 }}>
               <span style={{ fontSize: 13, color: 'var(--muted)' }}>Preco</span>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 700, color: 'var(--royal)', lineHeight: 1.1 }}>
+              <p className="product-detail-price" style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 700, color: 'var(--royal)', lineHeight: 1.1 }}>
                 R$ {Number(product.price).toFixed(2).replace('.', ',')}
               </p>
               <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Pix, boleto ou cartao via Mercado Pago</p>
@@ -211,7 +211,7 @@ export default function ProductPage() {
   }
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-container product-detail-page" style={{ maxWidth: 680, margin: '0 auto', padding: '40px 24px' }}>
       <div style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', marginBottom: 32 }}>
         <Link href="/dashboard" style={{ color: 'var(--violet)', textDecoration: 'none' }}>Dashboard</Link>
         <span>/</span>
@@ -228,7 +228,7 @@ export default function ProductPage() {
         </div>
       )}
 
-      <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
+      <div className="form-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <Input label="Nome do Produto" value={name} onChange={e => setName(e.target.value)} required />
 
@@ -241,7 +241,7 @@ export default function ProductPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <Input label="Preco (R$)" type="number" value={price} onChange={e => setPrice(e.target.value)} required />
             <Input label="Estoque" type="number" value={stock} onChange={e => setStock(e.target.value)} required />
           </div>
@@ -253,7 +253,7 @@ export default function ProductPage() {
                 <img src={imagePreview ?? currentImage ?? ''} alt="Preview" style={{ maxHeight: 180, objectFit: 'contain' }} />
               </div>
             )}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: 13, color: 'var(--muted)', transition: 'all 0.2s' }}>
+            <label className="file-picker" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: 13, color: 'var(--muted)', transition: 'all 0.2s' }}>
               <span>Foto</span>
               <span>{imageFile ? imageFile.name : 'Clique para trocar a imagem (opcional)'}</span>
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} style={{ display: 'none' }} />
@@ -261,7 +261,7 @@ export default function ProductPage() {
             <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Deixe em branco para manter a imagem atual.</p>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+          <div className="form-actions" style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
             <Button type="submit" variant="primary" size="lg" style={{ flex: 1 }} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar Alteracoes'}
             </Button>

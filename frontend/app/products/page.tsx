@@ -92,10 +92,10 @@ function ProductsPageContent() {
   );
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
+    <div className="page-container products-page" style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
 
       {/* Hero */}
-      <div style={{
+      <div className="market-hero" style={{
         background: 'linear-gradient(135deg, var(--royal) 0%, var(--plum) 100%)',
         borderRadius: 'var(--radius-xl)', padding: '40px', marginBottom: 40,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20,
@@ -107,7 +107,7 @@ function ProductsPageContent() {
           </h1>
           <p style={{ fontSize: 14, color: '#8B6BA8', margin: 0 }}>Compra segura · Pix, boleto e cartão · Entrega para todo o Brasil</p>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="hero-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button onClick={fetchProducts} style={{ background: 'rgba(196,160,255,0.12)', border: '1px solid rgba(196,160,255,0.2)', color: '#C4A0FF', borderRadius: 'var(--radius-pill)', padding: '10px 20px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>↻ Atualizar</button>
           {/* Botão "Novo produto" — apenas seller/admin */}
           {isSeller && (
@@ -120,7 +120,7 @@ function ProductsPageContent() {
 
       {/* Faixa de modo — só para seller/admin */}
       {isSeller && (
-        <div style={{ marginBottom: 24, padding: '14px 20px', background: isAdmin ? '#F5F3FF' : '#FFFBEB', border: `1px solid ${isAdmin ? 'var(--mist)' : '#FDE68A'}`, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="seller-mode-banner" style={{ marginBottom: 24, padding: '14px 20px', background: isAdmin ? '#F5F3FF' : '#FFFBEB', border: `1px solid ${isAdmin ? 'var(--mist)' : '#FDE68A'}`, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 16 }}>{isAdmin ? '🛡️' : '🔧'}</span>
           <div>
             <p style={{ fontSize: 12, fontWeight: 600, color: isAdmin ? 'var(--violet)' : '#92400E', marginBottom: 2 }}>
@@ -147,7 +147,7 @@ function ProductsPageContent() {
 
       {/* Grid de produtos */}
       {filtered.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+        <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
           {filtered.map(product => {
             const edit      = canEdit(product);
             const inCart    = isInCart(product.id);
@@ -173,7 +173,7 @@ function ProductsPageContent() {
                 onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'var(--border)'; el.style.boxShadow = 'none'; el.style.transform = 'translateY(0)'; }}
               >
                 {/* Imagem */}
-                <div style={{ height: 200, background: 'var(--mist)', position: 'relative', overflow: 'hidden' }}>
+                <div className="product-card-image" style={{ height: 200, background: 'var(--mist)', position: 'relative', overflow: 'hidden' }}>
                   {product.image_url ? (
                     <img src={getImageUrl(product.image_url)} alt={product.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
@@ -209,7 +209,7 @@ function ProductsPageContent() {
 
                 {/* Info */}
                 <div style={{ padding: '18px 18px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--royal)', marginBottom: 4, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
+                  <p className="product-card-title" style={{ fontSize: 15, fontWeight: 600, color: 'var(--royal)', marginBottom: 4, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
                   <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.description}</p>
 
                   {/* Estrelas */}

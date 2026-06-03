@@ -49,7 +49,7 @@ function OrderCard({ order }: { order: Order }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
     >
       {/* Header */}
-      <div onClick={() => setOpen(!open)} style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', background: open ? 'var(--cream)' : 'transparent', transition: 'background 0.2s' }}>
+      <div className="account-order-header" onClick={() => setOpen(!open)} style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', background: open ? 'var(--cream)' : 'transparent', transition: 'background 0.2s' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg, var(--mist), #E9D5FF)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontSize: 8, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Pedido</span>
@@ -60,7 +60,7 @@ function OrderCard({ order }: { order: Order }) {
             <p style={{ fontSize: 11, color: 'var(--muted)' }}>{items.length} item{items.length > 1 ? 's' : ''}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="account-order-meta" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <StatusBadge status={order.payment_status || order.status} />
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: 'var(--royal)' }}>{fmt(order.total)}</p>
           <span style={{ fontSize: 10, color: 'var(--muted)', transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', display: 'inline-block' }}>▼</span>
@@ -71,14 +71,14 @@ function OrderCard({ order }: { order: Order }) {
       {open && (
         <div style={{ borderTop: '1px solid var(--border)', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {items.map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--cream)', borderRadius: 'var(--radius-md)' }}>
+            <div key={idx} className="order-item-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--cream)', borderRadius: 'var(--radius-md)' }}>
               <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--mist)', overflow: 'hidden', flexShrink: 0 }}>
                 {item.image_url
                   ? <img src={getImageUrl(item.image_url)} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📦</div>}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--royal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
+                <p className="order-item-title" style={{ fontSize: 13, fontWeight: 600, color: 'var(--royal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
                 <p style={{ fontSize: 11, color: 'var(--muted)' }}>{item.quantity}× · {fmt(item.price)} cada</p>
               </div>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--royal)', flexShrink: 0 }}>{fmt(item.price * item.quantity)}</p>
@@ -145,7 +145,7 @@ export default function AccountPage() {
   );
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px' }}>
+    <div className="page-container account-page" style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px' }}>
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36, flexWrap: 'wrap', gap: 16 }}>
@@ -161,7 +161,7 @@ export default function AccountPage() {
       </div>
 
       {/* ── Stats rápidas ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 36 }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 36 }}>
         {[
           { icon: '🛒', label: 'Total de pedidos', value: String(orders.length) },
           { icon: '✅', label: 'Pedidos pagos',    value: String(pedidosPagos) },
@@ -177,7 +177,7 @@ export default function AccountPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+      <div className="account-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
 
         {/* ── Coluna esquerda — Pedidos recentes ── */}
         <div>
@@ -209,7 +209,7 @@ export default function AccountPage() {
         </div>
 
         {/* ── Coluna direita — Perfil + Ações ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="profile-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Card de perfil */}
           <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '24px' }}>

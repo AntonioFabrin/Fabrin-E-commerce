@@ -45,7 +45,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
+    <div className="auth-page" style={{
       minHeight: 'calc(100vh - 136px)',
       display: 'flex',
       alignItems: 'center',
@@ -56,7 +56,7 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 420 }}>
 
         {/* Card */}
-        <div style={{
+        <div className="auth-card" style={{
           background: 'var(--white)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-xl)',
