@@ -6,6 +6,7 @@ import CartHeaderIcon from './CartHeaderIcon';
 import { useCurrentUser, logout } from '../hooks/useAuth';
 
 export default function Header() {
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const currentUser = useCurrentUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,6 +18,15 @@ export default function Header() {
   const initial = firstName.slice(0, 1).toUpperCase() || 'U';
   const accountHref = isSeller ? '/dashboard' : '/account';
   const roleLabel = role === 'admin' ? 'Admin' : role === 'seller' ? 'Vendedor' : 'Cliente';
+
+  React.useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const handleLogout = () => {
+    setMenuOpen(false);
+    logout(router);
+  };
 
   return (
     <header style={{
@@ -48,6 +58,21 @@ export default function Header() {
             Fabrin<span style={{ color: 'var(--lavender)' }}>Market</span>
           </span>
         </Link>
+
+        <div className="mobile-header-actions">
+          <CartHeaderIcon compact />
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(open => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
 
         <nav className="site-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
           <NavLink href="/products" label="Loja" active={pathname.startsWith('/products')} />
@@ -107,7 +132,7 @@ export default function Header() {
               </Link>
 
               <button
-                onClick={() => logout(router)}
+                onClick={handleLogout}
                 style={{
                   background: 'transparent',
                   border: '1px solid rgba(196,160,255,0.35)',
@@ -156,6 +181,44 @@ export default function Header() {
           )}
         </nav>
       </div>
+
+      {menuOpen && <button className="mobile-menu-backdrop" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} />}
+
+      <aside className={`mobile-side-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
+        <div className="mobile-side-menu__header">
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: '#E8D5FF' }}>
+            Menu
+          </span>
+          <button type="button" className="mobile-menu-close" aria-label="Fechar menu" onClick={() => setMenuOpen(false)}>
+            x
+          </button>
+        </div>
+
+        {isLoggedIn && (
+          <Link href={accountHref} className="mobile-user-card">
+            <span className="mobile-user-avatar">{initial}</span>
+            <span>
+              <span className="mobile-user-name">{firstName}</span>
+              <span className="mobile-user-role">{roleLabel}</span>
+            </span>
+          </Link>
+        )}
+
+        <nav className="mobile-side-links">
+          <SideLink href="/products" label="Loja" active={pathname.startsWith('/products')} />
+          {isLoggedIn && <SideLink href="/orders" label="Pedidos" active={pathname.startsWith('/orders')} />}
+          {isCustomer && <SideLink href="/account" label="Minha Conta" active={pathname.startsWith('/account')} />}
+          {isSeller && <SideLink href="/dashboard" label="Painel" active={pathname.startsWith('/dashboard')} />}
+          {!isLoggedIn && <SideLink href="/register" label="Criar conta" active={pathname.startsWith('/register')} />}
+          {!isLoggedIn && <SideLink href="/login" label="Entrar" active={pathname.startsWith('/login')} />}
+        </nav>
+
+        {isLoggedIn && (
+          <button type="button" className="mobile-logout" onClick={handleLogout}>
+            Sair
+          </button>
+        )}
+      </aside>
     </header>
   );
 }
@@ -181,6 +244,15 @@ function NavLink({ href, label, active = false }: { href: string; label: string;
       onMouseLeave={() => setHovered(false)}
     >
       {label}
+    </Link>
+  );
+}
+
+function SideLink({ href, label, active = false }: { href: string; label: string; active?: boolean }) {
+  return (
+    <Link href={href} className={`mobile-side-link ${active ? 'is-active' : ''}`}>
+      {label}
+      <span>&gt;</span>
     </Link>
   );
 }
