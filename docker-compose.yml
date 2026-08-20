@@ -31,6 +31,16 @@ services:
       - .env
     environment:
       PORT: 3333
+      # Sobrescreve URLs/variáveis remotas eventualmente presentes no .env.
+      # Dentro do Compose, o banco deve ser sempre o serviço local `db`.
+      DATABASE_URL: ""
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: ecommerce
+      PGPASSWORD: ecommerce
+      PGDATABASE: ecommerce
+      PGSSLMODE: disable
+      DB_SSL: "false"
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ecommerce
@@ -42,17 +52,41 @@ services:
     volumes:
       - uploads_data:/app/uploads
 
+  identity-backend:
+    build:
+      context: ./backend-java
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ecommerce
+      DB_PASSWORD: ecommerce
+      DB_NAME: ecommerce
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET precisa estar definido no arquivo .env}
+      JWT_EXPIRATION: PT8H
+      JWT_ISSUER: fabrinmarket-api
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "8080:8080"
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
         BACKEND_INTERNAL_URL: http://backend:3333
+        IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
     restart: unless-stopped
     depends_on:
       - backend
+      - identity-backend
     environment:
       BACKEND_INTERNAL_URL: http://backend:3333
+      IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
     ports:
       - "3000:3000"
 

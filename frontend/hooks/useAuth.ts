@@ -18,6 +18,9 @@ export const AUTH_CHANGED_EVENT = 'fabrin:auth-changed';
 function decodeJwtPayload(token: string): AuthUser | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
+    if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) {
+      return null;
+    }
     const savedName = typeof window !== 'undefined'
       ? localStorage.getItem('@Ecommerce:name') ?? undefined
       : undefined;

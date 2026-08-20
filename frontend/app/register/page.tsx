@@ -98,7 +98,7 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Input label="Nome completo" type="text" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} required />
             <Input label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
-            <Input label="Senha" type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={e => setPassword(e.target.value)} required />
+            <Input label="Senha" type="password" placeholder="Mínimo 8 caracteres" minLength={8} maxLength={72} value={password} onChange={e => setPassword(e.target.value)} required />
 
             <Button type="submit" variant="primary" size="lg" disabled={loading}>
               {loading ? 'Criando conta...' : `Criar conta como ${role === 'customer' ? 'Comprador' : 'Vendedor'} →`}

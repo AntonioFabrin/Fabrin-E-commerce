@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const resolveBackendUrl = () => {
+const resolveLegacyBackendUrl = () => {
   const configuredUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL;
   if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
     return configuredUrl;
@@ -11,8 +11,17 @@ const resolveBackendUrl = () => {
   return 'http://127.0.0.1:3333';
 };
 
-const backendUrl = resolveBackendUrl();
-const apiUrl = new URL(backendUrl);
+const resolveIdentityBackendUrl = () => {
+  const configuredUrl = process.env.IDENTITY_BACKEND_INTERNAL_URL;
+  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+  return 'http://127.0.0.1:8080';
+};
+
+const legacyBackendUrl = resolveLegacyBackendUrl();
+const identityBackendUrl = resolveIdentityBackendUrl();
+const apiUrl = new URL(legacyBackendUrl);
 
 const apiRemotePattern = {
   protocol: apiUrl.protocol.replace(':', ''),
@@ -34,12 +43,32 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/api/register',
+        destination: `${identityBackendUrl}/api/register`,
+      },
+      {
+        source: '/api/login',
+        destination: `${identityBackendUrl}/api/login`,
+      },
+      {
+        source: '/api/me',
+        destination: `${identityBackendUrl}/api/me`,
+      },
+      {
+        source: '/api/users',
+        destination: `${identityBackendUrl}/api/users`,
+      },
+      {
+        source: '/api/users/:path*',
+        destination: `${identityBackendUrl}/api/users/:path*`,
+      },
+      {
         source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`,
+        destination: `${legacyBackendUrl}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: `${backendUrl}/uploads/:path*`,
+        destination: `${legacyBackendUrl}/uploads/:path*`,
       },
     ];
   },

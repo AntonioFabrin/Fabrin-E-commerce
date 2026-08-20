@@ -1,0 +1,40 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+    ports:
+      - "5433:5432"
+    volumes:
+      - java_postgres_data:/var/lib/postgresql/data
+      - ../src/database/setup_completo.sql:/docker-entrypoint-initdb.d/01-legacy-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce -d ecommerce"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ecommerce
+      DB_USER: ecommerce
+      DB_PASSWORD: ecommerce
+      DB_SSL: "false"
+      JWT_SECRET: local-development-secret-change-me-32-bytes-minimum
+      JWT_EXPIRATION: PT8H
+      JWT_ISSUER: fabrinmarket-api
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+    ports:
+      - "8080:8080"
+
+volumes:
+  java_postgres_data:

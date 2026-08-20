@@ -123,7 +123,7 @@ export default function AccountPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.put(`/api/${user!.id}`, { name, email });
+      await api.put('/api/me', { name, email });
       // Atualiza o nome no localStorage para o header refletir imediatamente
       localStorage.setItem('@Ecommerce:name', name);
       notifyAuthChanged();

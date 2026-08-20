@@ -19,7 +19,7 @@
 
 ### Autenticação & Usuários
 - Cadastro e login com JWT (8h de expiração)
-- Sistema de roles: `buyer`, `seller`, `admin`
+- Sistema de roles: `customer`, `seller`, `admin`
 - Proteção de rotas no servidor via `proxy.ts` do Next.js 16 (bloqueia antes de renderizar)
 - Cookies de rota com `SameSite=Lax` e `Secure` quando o site roda em HTTPS
 - Hook `useRequireAuth` centraliza verificação de auth no client-side
@@ -73,6 +73,12 @@ src/
 ```
 
 Padrão: **Controller → Service → Repository**
+
+O módulo de identidade já foi migrado para Java 21 com arquitetura hexagonal em
+`backend-java/`. Durante a migração incremental, cadastro, login e usuários são
+encaminhados ao Java; produtos, pedidos, pagamentos, avaliações e vendedores
+continuam no Node.js. Os dois backends precisam compartilhar o mesmo
+`JWT_SECRET`.
 
 ### Frontend
 

@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: fabrinmarket-api
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ecommerce}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:}}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:}
+    expiration: ${JWT_EXPIRATION:PT8H}
+    issuer: ${JWT_ISSUER:fabrinmarket-api}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+info:
+  app:
+    name: FabrinMarket API
+    migration-stage: foundation
