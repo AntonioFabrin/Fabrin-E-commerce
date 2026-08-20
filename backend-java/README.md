@@ -7,8 +7,10 @@ os contratos usados pelo frontend.
 ## Pre-requisitos
 
 - JDK 21
-- Maven 3.9+ ou Docker Desktop
+- Docker Desktop, ou JDK 21 para execução sem Docker
 - PostgreSQL 16 para execucao local sem Docker
+
+O Maven 3.9.11 e baixado automaticamente pelos scripts `mvnw`/`mvnw.cmd`.
 
 ## Executar localmente
 
@@ -19,10 +21,11 @@ $env:SPRING_DATASOURCE_URL = 'jdbc:postgresql://localhost:5432/ecommerce'
 $env:SPRING_DATASOURCE_USERNAME = 'postgres'
 $env:SPRING_DATASOURCE_PASSWORD = 'sua-senha'
 $env:JWT_SECRET = 'uma-chave-com-pelo-menos-32-bytes'
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
-O healthcheck fica em `http://localhost:8080/actuator/health`.
+Os endpoints operacionais ficam em `http://localhost:8080/actuator/health` e
+`http://localhost:8080/actuator/info`.
 
 Para um PostgreSQL hospedado com SSL, defina a URL JDBC com `?sslmode=require`.
 
@@ -32,7 +35,12 @@ Para um PostgreSQL hospedado com SSL, defina a URL JDBC com `?sslmode=require`.
 docker compose up --build
 ```
 
-O Compose cria um PostgreSQL isolado na porta `5433` e inicia a API na porta `8080`. O banco usa o schema SQL atual apenas para a transicao; as alteracoes novas passarao a ser versionadas em `src/main/resources/db/migration` pelo Flyway.
+O Compose cria um PostgreSQL isolado na porta `5433` e inicia a API na porta
+`8080`. O schema legado e importado na primeira inicializacao e as mudancas do
+backend Java sao versionadas em `src/main/resources/db/migration` pelo Flyway.
+
+A revalidacao completa da fundacao esta registrada em
+`docs/block-1-validation-report.md`.
 
 ## Modulo identity
 

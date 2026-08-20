@@ -22,4 +22,14 @@ class FabrinMarketApplicationTests {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).contains("UP");
     }
+
+    @Test
+    void exposesApplicationInfo() {
+        var response = restTemplate.getForEntity("/actuator/info", String.class);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody())
+                .contains("\"name\":\"FabrinMarket API\"")
+                .contains("\"migration-stage\":\"foundation\"");
+    }
 }
