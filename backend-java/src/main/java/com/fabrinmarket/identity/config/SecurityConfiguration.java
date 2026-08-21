@@ -67,6 +67,10 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/products").hasAnyRole("SELLER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/*").hasAnyRole("SELLER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/*").hasAnyRole("SELLER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/seller").hasAnyRole("SELLER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/orders/*/cancel").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/users/*/role").hasRole("ADMIN")
                         .anyRequest().authenticated())
@@ -84,7 +88,7 @@ public class SecurityConfiguration {
                 .filter(origin -> !origin.isBlank())
                 .toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
         configuration.setAllowCredentials(true);
 
         var source = new UrlBasedCorsConfigurationSource();

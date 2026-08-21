@@ -88,6 +88,7 @@ services:
         BACKEND_INTERNAL_URL: http://backend:3333
         IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
         CATALOG_BACKEND_INTERNAL_URL: http://identity-backend:8080
+        ORDERS_BACKEND_INTERNAL_URL: http://identity-backend:8080
     restart: unless-stopped
     depends_on:
       - backend
@@ -96,6 +97,7 @@ services:
       BACKEND_INTERNAL_URL: http://backend:3333
       IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
       CATALOG_BACKEND_INTERNAL_URL: http://identity-backend:8080
+      ORDERS_BACKEND_INTERNAL_URL: http://identity-backend:8080
     ports:
       - "3000:3000"
 

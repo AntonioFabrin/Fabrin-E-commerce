@@ -32,6 +32,6 @@ class PostgreSqlIntegrationTests {
 
     @Test
     void appliesTheFlywayBaselineOnPostgreSql() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("4");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("5");
     }
 }
