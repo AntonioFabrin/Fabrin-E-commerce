@@ -10,7 +10,10 @@ RUN mvn --batch-mode clean package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-RUN addgroup --system spring && adduser --system --ingroup spring spring
+RUN addgroup --system spring \
+    && adduser --system --ingroup spring spring \
+    && mkdir -p /app/uploads/products \
+    && chown -R spring:spring /app/uploads
 COPY --from=build /app/target/fabrinmarket-api-*.jar app.jar
 USER spring:spring
 

@@ -19,8 +19,18 @@ const resolveIdentityBackendUrl = () => {
   return 'http://127.0.0.1:8080';
 };
 
+const resolveCatalogBackendUrl = () => {
+  const configuredUrl = process.env.CATALOG_BACKEND_INTERNAL_URL
+    || process.env.IDENTITY_BACKEND_INTERNAL_URL;
+  if (configuredUrl && /^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+  return 'http://127.0.0.1:8080';
+};
+
 const legacyBackendUrl = resolveLegacyBackendUrl();
 const identityBackendUrl = resolveIdentityBackendUrl();
+const catalogBackendUrl = resolveCatalogBackendUrl();
 const apiUrl = new URL(legacyBackendUrl);
 
 const apiRemotePattern = {
@@ -61,6 +71,18 @@ const nextConfig = {
       {
         source: '/api/users/:path*',
         destination: `${identityBackendUrl}/api/users/:path*`,
+      },
+      {
+        source: '/api/products',
+        destination: `${catalogBackendUrl}/api/products`,
+      },
+      {
+        source: '/api/products/:path*',
+        destination: `${catalogBackendUrl}/api/products/:path*`,
+      },
+      {
+        source: '/uploads/products/:path*',
+        destination: `${catalogBackendUrl}/uploads/products/:path*`,
       },
       {
         source: '/api/:path*',

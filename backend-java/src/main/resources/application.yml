@@ -1,6 +1,10 @@
 spring:
   application:
     name: fabrinmarket-api
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   jackson:
     deserialization:
       fail-on-unknown-properties: true
@@ -31,6 +35,16 @@ security:
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
 
+storage:
+  product:
+    provider: ${PRODUCT_STORAGE_PROVIDER:local}
+    directory: ${PRODUCT_UPLOAD_DIR:./uploads/products}
+    public-prefix: /uploads/products
+    supabase:
+      url: ${SUPABASE_URL:}
+      service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+      bucket: ${SUPABASE_PRODUCTS_BUCKET:product-images}
+
 management:
   endpoints:
     web:
@@ -47,4 +61,4 @@ management:
 info:
   app:
     name: FabrinMarket API
-    migration-stage: foundation
+    migration-stage: catalog

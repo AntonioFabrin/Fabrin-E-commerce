@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+    ports:
+      - "5433:5432"
+    volumes:
+      - java_postgres_data:/var/lib/postgresql/data
+      - ../src/database/setup_completo.sql:/docker-entrypoint-initdb.d/01-setup.sql:ro
+      - ../src/database/create_reviews.sql:/docker-entrypoint-initdb.d/02-reviews.sql:ro
+      - ../src/database/update_orders.sql:/docker-entrypoint-initdb.d/03-orders.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce -d ecommerce"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ecommerce
+      DB_PASSWORD: ecommerce
+      DB_NAME: ecommerce
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET precisa estar definido}
+      JWT_EXPIRATION: PT8H
+      JWT_ISSUER: fabrinmarket-api
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      PRODUCT_STORAGE_PROVIDER: ${PRODUCT_STORAGE_PROVIDER:-local}
+      PRODUCT_UPLOAD_DIR: /app/uploads/products
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_PRODUCTS_BUCKET: ${SUPABASE_PRODUCTS_BUCKET:-product-images}
+    ports:
+      - "8080:8080"
+    volumes:
+      - java_product_uploads_data:/app/uploads/products
+
+volumes:
+  java_postgres_data:
+  java_product_uploads_data:

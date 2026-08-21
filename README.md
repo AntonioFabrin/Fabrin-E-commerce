@@ -25,7 +25,7 @@
 - Hook `useRequireAuth` centraliza verificação de auth no client-side
 
 ### Produtos
-- CRUD completo com upload de imagem (Multer — validação de MIME type real, limite 5 MB)
+- CRUD completo no backend Java com validação da assinatura real JPEG/PNG/WebP e limite de 5 MiB
 - Vendedor só edita/exclui os próprios produtos; admin gerencia tudo
 - Paginação na listagem pública
 
@@ -74,11 +74,10 @@ src/
 
 Padrão: **Controller → Service → Repository**
 
-O módulo de identidade já foi migrado para Java 21 com arquitetura hexagonal em
-`backend-java/`. Durante a migração incremental, cadastro, login e usuários são
-encaminhados ao Java; produtos, pedidos, pagamentos, avaliações e vendedores
-continuam no Node.js. Os dois backends precisam compartilhar o mesmo
-`JWT_SECRET`.
+Os módulos de identidade e catálogo foram migrados para Java 21 com arquitetura
+hexagonal em `backend-java/`. Cadastro, login, usuários, produtos e suas imagens
+são encaminhados ao Java; pedidos, pagamentos, avaliações e vendedores continuam
+no Node.js. Os dois backends compartilham PostgreSQL e `JWT_SECRET`.
 
 ### Frontend
 
@@ -180,6 +179,8 @@ Conteúdo do `frontend/.env.local`:
 
 ```env
 BACKEND_INTERNAL_URL=http://127.0.0.1:3333
+IDENTITY_BACKEND_INTERNAL_URL=http://127.0.0.1:8080
+CATALOG_BACKEND_INTERNAL_URL=http://127.0.0.1:8080
 # Local: deixe NEXT_PUBLIC_API_URL sem definir para o navegador usar /api pelo Next.
 # NEXT_PUBLIC_API_URL=http://127.0.0.1:3333
 ```
@@ -228,6 +229,7 @@ npm run dev
 | `SUPABASE_URL` | URL do projeto Supabase, usada para enviar imagens ao Storage |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave server-side do Supabase para upload no bucket; nao exponha no frontend |
 | `SUPABASE_PRODUCTS_BUCKET` | Nome do bucket de imagens dos produtos |
+| `PRODUCT_STORAGE_PROVIDER` | Provider do catálogo Java: `local` (padrão) ou `supabase` |
 | `MP_ACCESS_TOKEN` | Access Token do Mercado Pago |
 | `MP_PUBLIC_KEY` | Public Key do Mercado Pago |
 | `FRONTEND_URL` | URL do frontend (para CORS e redirects do MP) |
@@ -236,7 +238,9 @@ npm run dev
 
 | Variável | Descrição |
 |---|---|
-| `BACKEND_INTERNAL_URL` | URL usada pelo Next para encaminhar `/api/*` e `/uploads/*` ao backend local |
+| `BACKEND_INTERNAL_URL` | URL do Node para módulos ainda não migrados |
+| `IDENTITY_BACKEND_INTERNAL_URL` | URL Java para autenticação e usuários |
+| `CATALOG_BACKEND_INTERNAL_URL` | URL Java para produtos e `/uploads/products/**` |
 | `NEXT_PUBLIC_API_URL` | Opcional. URL pública do backend quando o frontend precisa chamar uma API externa ao próprio domínio |
 
 ---
@@ -347,7 +351,7 @@ O projeto agora inclui `docker-compose.yml` com:
 - `db`: PostgreSQL 16 com scripts de schema em `src/database/`
 - `backend`: API Node/Express
 - `frontend`: Next.js
-- `frontend` usa `/api/*` na mesma origem e `BACKEND_INTERNAL_URL` para rewrites internas no container
+- `frontend` mantém uma origem e separa os rewrites entre Node, identity Java e catalog Java
 
 ### Subir tudo
 
@@ -359,6 +363,7 @@ docker compose up --build
 
 - Frontend: `http://localhost:3000`
 - Backend: `http://127.0.0.1:3333`
+- Backend Java: `http://127.0.0.1:8080`
 - PostgreSQL: `localhost:5432`
 
 ### Observação

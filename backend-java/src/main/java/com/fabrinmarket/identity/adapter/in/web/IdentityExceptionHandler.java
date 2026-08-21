@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = {AuthController.class, UserController.class})
 public class IdentityExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityExceptionHandler.class);

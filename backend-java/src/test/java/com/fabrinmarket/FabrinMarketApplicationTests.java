@@ -30,6 +30,6 @@ class FabrinMarketApplicationTests {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody())
                 .contains("\"name\":\"FabrinMarket API\"")
-                .contains("\"migration-stage\":\"foundation\"");
+                .contains("\"migration-stage\":\"catalog\"");
     }
 }

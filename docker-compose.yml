@@ -70,8 +70,15 @@ services:
       JWT_EXPIRATION: PT8H
       JWT_ISSUER: fabrinmarket-api
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      PRODUCT_STORAGE_PROVIDER: ${PRODUCT_STORAGE_PROVIDER:-local}
+      PRODUCT_UPLOAD_DIR: /app/uploads/products
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_PRODUCTS_BUCKET: ${SUPABASE_PRODUCTS_BUCKET:-product-images}
     ports:
       - "8080:8080"
+    volumes:
+      - product_uploads_data:/app/uploads/products
 
   frontend:
     build:
@@ -80,6 +87,7 @@ services:
       args:
         BACKEND_INTERNAL_URL: http://backend:3333
         IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
+        CATALOG_BACKEND_INTERNAL_URL: http://identity-backend:8080
     restart: unless-stopped
     depends_on:
       - backend
@@ -87,9 +95,11 @@ services:
     environment:
       BACKEND_INTERNAL_URL: http://backend:3333
       IDENTITY_BACKEND_INTERNAL_URL: http://identity-backend:8080
+      CATALOG_BACKEND_INTERNAL_URL: http://identity-backend:8080
     ports:
       - "3000:3000"
 
 volumes:
   postgres_data:
   uploads_data:
+  product_uploads_data:
